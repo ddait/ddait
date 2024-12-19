@@ -5,7 +5,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "start:dev": "NODE_ENV=development nest start --watch",
+    "start:staging": "NODE_ENV=staging node dist/main",
+    "start:prod": "NODE_ENV=production node dist/main",
+    "build": "nest build",
+    "test": "jest",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
     "clean": "rm -rf dist"
   },
   "dependencies": {
