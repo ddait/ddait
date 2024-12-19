@@ -1,0 +1,14 @@
+{
+  "name": "@ddait2/config",
+  "version": "0.0.1",
+  "main": "index.js",
+  "files": [
+    "eslint-preset.js",
+    "typescript-preset.json"
+  ],
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint-config-prettier": "^8.0.0"
+  }
+}
