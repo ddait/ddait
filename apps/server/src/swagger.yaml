@@ -1,0 +1,772 @@
+openapi: 3.0.0
+info:
+  title: Ddait v2.0 API
+  description: Ddait v2.0 Backend API Specification
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    # Auth DTOs
+    SignUpRequest:
+      type: object
+      required:
+        - email
+        - password
+        - username
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        username:
+          type: string
+          minLength: 3
+
+    SignInRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            username:
+              type: string
+        session:
+          type: object
+          properties:
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+
+    # Exercise DTOs
+    ExerciseSession:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [strength, cardio, flexibility]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        calories:
+          type: integer
+        status:
+          type: string
+          enum: [active, paused, completed]
+
+    CreateExerciseSessionRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [strength, cardio, flexibility]
+        metadata:
+          type: object
+
+    # Competition DTOs
+    Competition:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [1v1, group, ranking]
+        status:
+          type: string
+          enum: [waiting, active, completed]
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+              score:
+                type: integer
+
+    CreateMatchRequest:
+      type: object
+      required:
+        - type
+        - exerciseType
+      properties:
+        type:
+          type: string
+          enum: [1v1, group]
+        exerciseType:
+          type: string
+
+    # Social DTOs
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+        level:
+          type: integer
+        exp:
+          type: integer
+        stats:
+          type: object
+          properties:
+            totalExercises:
+              type: integer
+            totalDuration:
+              type: integer
+            totalCalories:
+              type: integer
+
+    FriendRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        fromUserId:
+          type: string
+        toUserId:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+        createdAt:
+          type: string
+          format: date-time
+
+    ActivityPost:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [exercise, achievement, competition]
+        content:
+          type: string
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        likes:
+          type: integer
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: Create new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+      responses:
+        '201':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input data
+        '409':
+          description: Email already exists
+
+  /auth/signin:
+    post:
+      tags:
+        - Auth
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+      responses:
+        '200':
+          description: Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/google:
+    get:
+      tags:
+        - Auth
+      summary: Sign in with Google
+      responses:
+        '200':
+          description: Google OAuth URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+
+  /exercise/sessions:
+    post:
+      tags:
+        - Exercise
+      summary: Create new exercise session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExerciseSessionRequest'
+      responses:
+        '201':
+          description: Exercise session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseSession'
+        '401':
+          description: Unauthorized
+
+    get:
+      tags:
+        - Exercise
+      summary: Get user's exercise sessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Items per page
+      responses:
+        '200':
+          description: List of exercise sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExerciseSession'
+        '401':
+          description: Unauthorized
+
+  /exercise/sessions/{id}:
+    get:
+      tags:
+        - Exercise
+      summary: Get exercise session by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exercise session details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseSession'
+        '404':
+          description: Session not found
+
+    patch:
+      tags:
+        - Exercise
+      summary: Update exercise session
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endTime:
+                  type: string
+                  format: date-time
+                duration:
+                  type: integer
+                calories:
+                  type: integer
+                status:
+                  type: string
+                  enum: [active, paused, completed]
+      responses:
+        '200':
+          description: Exercise session updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseSession'
+        '404':
+          description: Session not found
+
+  /competition/match:
+    post:
+      tags:
+        - Competition
+      summary: Find or create a match
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMatchRequest'
+      responses:
+        '201':
+          description: Match created or found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Competition'
+        '401':
+          description: Unauthorized
+
+  /competition/{id}/score:
+    post:
+      tags:
+        - Competition
+      summary: Update competition score
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - score
+              properties:
+                score:
+                  type: integer
+                metadata:
+                  type: object
+      responses:
+        '200':
+          description: Score updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Competition'
+        '404':
+          description: Competition not found
+
+  /competition/ranking:
+    get:
+      tags:
+        - Competition
+      summary: Get competition rankings
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ranking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                    rank:
+                      type: integer
+                    score:
+                      type: integer
+
+  /social/profile:
+    get:
+      tags:
+        - Social
+      summary: Get current user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          description: Unauthorized
+
+    patch:
+      tags:
+        - Social
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                avatarUrl:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          description: Unauthorized
+
+  /social/friends:
+    get:
+      tags:
+        - Social
+      summary: Get user's friends list
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of friends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - Social
+      summary: Send friend request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - toUserId
+              properties:
+                toUserId:
+                  type: string
+      responses:
+        '201':
+          description: Friend request sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequest'
+        '401':
+          description: Unauthorized
+
+  /social/friends/requests:
+    get:
+      tags:
+        - Social
+      summary: Get friend requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, accepted, rejected]
+      responses:
+        '200':
+          description: List of friend requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FriendRequest'
+        '401':
+          description: Unauthorized
+
+  /social/friends/requests/{id}:
+    patch:
+      tags:
+        - Social
+      summary: Respond to friend request
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [accepted, rejected]
+      responses:
+        '200':
+          description: Friend request updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequest'
+        '404':
+          description: Request not found
+
+  /social/activities:
+    get:
+      tags:
+        - Social
+      summary: Get activity feed
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [exercise, achievement, competition]
+      responses:
+        '200':
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActivityPost'
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - Social
+      summary: Create activity post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - content
+              properties:
+                type:
+                  type: string
+                  enum: [exercise, achievement, competition]
+                content:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Activity post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPost'
+        '401':
+          description: Unauthorized
+
+  /social/activities/{id}/like:
+    post:
+      tags:
+        - Social
+      summary: Like/unlike activity post
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Like status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liked:
+                    type: boolean
+                  likesCount:
+                    type: integer
+        '404':
+          description: Post not found
+
+  /social/activities/{id}/comments:
+    post:
+      tags:
+        - Social
+      summary: Add comment to activity post
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '404':
+          description: Post not found 
