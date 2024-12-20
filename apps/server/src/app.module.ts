@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { validateEnv } from './config/env.config';
+import { MobileBffModule } from './bff/mobile/mobile-bff.module';
+import mobileBffConfig from './bff/mobile/config/mobile-bff.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: validateEnv,
-      envFilePath: '.env'
+      load: [mobileBffConfig],
+      envFilePath: ['.env.mobile', '.env'],
     }),
+    MobileBffModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
