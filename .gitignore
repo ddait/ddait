@@ -58,3 +58,7 @@ Thumbs.db
 *.mobileprovision
 *.orig.*
 web-build/
+
+
+package-lock.json
+yarn.lock
