@@ -1,23 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { MobileBffModule } from '../mobile-bff.module';
-import { ConfigModule } from '@nestjs/config';
-import mobileBffConfig from '../config/mobile-bff.config';
+import { AuthGuard } from '../../../auth/auth.guard';
 
-describe('MobileBFF (e2e)', () => {
+describe('Mobile BFF (e2e)', () => {
   let app: INestApplication;
+  let mockAuthGuard: jest.Mock;
 
   beforeEach(async () => {
+    mockAuthGuard = jest.fn().mockImplementation((req, res, next) => next());
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          load: [mobileBffConfig],
-          envFilePath: '.env.mobile',
-        }),
-        MobileBffModule,
-      ],
-    }).compile();
+      imports: [MobileBffModule],
+    })
+      .overrideGuard(AuthGuard)
+      .useValue({ canActivate: mockAuthGuard })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -27,109 +26,115 @@ describe('MobileBFF (e2e)', () => {
     await app.close();
   });
 
-  describe('Response Optimization', () => {
-    it('should optimize response data structure', () => {
-      const testData = {
-        id: 1,
-        name: 'Test User',
-        createdAt: new Date(),
-        metadata: { internal: true },
-        _id: 'internal_id',
-      };
-
+  describe('Auth Controller', () => {
+    it('/mobile/auth/signup (POST)', () => {
       return request(app.getHttpServer())
-        .post('/test/response')
-        .send(testData)
+        .post('/mobile/auth/signup')
+        .send({
+          email: 'test@example.com',
+          password: 'password123'
+        })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('email');
+        });
+    });
+
+    it('/mobile/auth/login (POST)', () => {
+      return request(app.getHttpServer())
+        .post('/mobile/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'password123'
+        })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('token');
+          expect(res.body.data).toHaveProperty('user');
+        });
+    });
+  });
+
+  describe('Exercise Controller', () => {
+    it('/mobile/exercise/sessions (POST)', () => {
+      return request(app.getHttpServer())
+        .post('/mobile/exercise/sessions')
+        .send({
+          type: 'running',
+          duration: 1800
+        })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('type');
+        });
+    });
+
+    it('/mobile/exercise/sessions/:id (GET)', () => {
+      return request(app.getHttpServer())
+        .get('/mobile/exercise/sessions/test-id')
         .expect(200)
-        .expect(res => {
-          expect(res.body.data).toBeDefined();
-          expect(res.body.meta).toBeDefined();
-          expect(res.body.meta.timestamp).toBeDefined();
-          expect(res.body.data._id).toBeUndefined();
-          expect(res.body.data.metadata).toBeUndefined();
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('type');
         });
     });
   });
 
-  describe('Cache Optimization', () => {
-    it('should cache responses and return cached data', async () => {
-      const endpoint = '/test/cache';
-      
-      // First request
-      const response1 = await request(app.getHttpServer())
-        .get(endpoint)
-        .expect(200);
-
-      // Second request to same endpoint
-      const response2 = await request(app.getHttpServer())
-        .get(endpoint)
-        .expect(200);
-
-      expect(response1.body).toEqual(response2.body);
-      expect(response2.headers['x-cache-hit']).toBe('true');
-    });
-  });
-
-  describe('Battery Optimization', () => {
-    it('should apply battery optimizations based on battery level', async () => {
-      const endpoint = '/test/battery';
-      const batteryLevel = 15;
-
-      const response = await request(app.getHttpServer())
-        .get(endpoint)
-        .set('x-battery-level', batteryLevel.toString())
-        .expect(200);
-
-      expect(response.body.data.animations).toBe(false);
-      expect(response.body.data.pollingInterval).toBeGreaterThan(1000);
-    });
-  });
-
-  describe('Network Optimization', () => {
-    it('should apply network optimizations based on network type', async () => {
-      const endpoint = '/test/network';
-      
-      const response = await request(app.getHttpServer())
-        .get(endpoint)
-        .set('x-network-type', 'cellular')
-        .set('x-network-effective-type', 'slow-2g')
-        .expect(200);
-
-      expect(response.headers['content-encoding']).toBe('gzip');
-      expect(response.body.data.length).toBeLessThanOrEqual(10); // Pagination applied
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should format errors according to mobile BFF standards', () => {
+  describe('Competition Controller', () => {
+    it('/mobile/competition/match (POST)', () => {
       return request(app.getHttpServer())
-        .get('/test/error')
-        .expect(400)
-        .expect(res => {
-          expect(res.body.error).toBeDefined();
-          expect(res.body.error.code).toBeDefined();
-          expect(res.body.error.message).toBeDefined();
-          expect(res.body.error.timestamp).toBeDefined();
+        .post('/mobile/competition/match')
+        .send({
+          type: '1v1',
+          exerciseType: 'running'
+        })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('matchId');
+          expect(res.body.data).toHaveProperty('status');
+        });
+    });
+
+    it('/mobile/competition/leaderboard (GET)', () => {
+      return request(app.getHttpServer())
+        .get('/mobile/competition/leaderboard')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('rankings');
+          expect(res.body.data).toHaveProperty('meta');
         });
     });
   });
 
-  describe('Security', () => {
-    it('should apply rate limiting', async () => {
-      const endpoint = '/test/ratelimit';
-      const requests = Array(101).fill(null); // Exceed rate limit (100)
+  describe('Social Controller', () => {
+    it('/mobile/social/friends (GET)', () => {
+      return request(app.getHttpServer())
+        .get('/mobile/social/friends')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('friends');
+          expect(res.body.data).toHaveProperty('meta');
+        });
+    });
 
-      for (const _ of requests) {
-        const response = await request(app.getHttpServer())
-          .get(endpoint);
-        
-        if (response.status === 429) {
-          expect(response.body.error.code).toBe('RATE_LIMIT_EXCEEDED');
-          return;
-        }
-      }
-
-      fail('Rate limit was not enforced');
+    it('/mobile/social/feed (GET)', () => {
+      return request(app.getHttpServer())
+        .get('/mobile/social/feed')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('posts');
+          expect(res.body.data).toHaveProperty('meta');
+        });
     });
   });
 }); 

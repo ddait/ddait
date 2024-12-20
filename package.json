@@ -15,5 +15,9 @@
   "devDependencies": {
     "turbo": "^1.10.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@nestjs/swagger": "^8.1.0",
+    "rate-limiter-flexible": "^5.0.4"
   }
 }
