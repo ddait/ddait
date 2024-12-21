@@ -1,54 +1,66 @@
-import { Body, Controller, Get, Post, Patch, Param, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, Headers } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ExerciseService } from './exercise.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { AuthService } from '../auth/auth.service';
 import { CreateSessionDto, UpdateSessionDto } from './dto/exercise.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('exercise')
+@ApiTags('운동 세션')
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
+@Controller('exercise')
 export class ExerciseController {
-  constructor(
-    private readonly exerciseService: ExerciseService,
-    private readonly authService: AuthService
-  ) {}
+  constructor(private readonly exerciseService: ExerciseService) {}
 
+  @ApiOperation({ summary: '운동 세션 생성' })
+  @ApiResponse({ status: 201, description: '운동 세션 생성 성공' })
   @Post('sessions')
   async createSession(
     @Headers('authorization') token: string,
-    @Body() createSessionDto: CreateSessionDto
+    @Body() createDto: CreateSessionDto
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.createSession(user.id, createSessionDto);
+    const userId = token.split(' ')[1];
+    return this.exerciseService.createSession(userId, createDto);
   }
 
+  @ApiOperation({ summary: '운동 세션 조회' })
+  @ApiResponse({ status: 200, description: '운동 세션 조회 성공' })
   @Get('sessions/:id')
   async getSession(
     @Headers('authorization') token: string,
     @Param('id') sessionId: string
   ) {
-    await this.authService.validateToken(token);
+    const userId = token.split(' ')[1];
     return this.exerciseService.getSession(sessionId);
   }
 
-  @Patch('sessions/:id')
+  @ApiOperation({ summary: '운동 세션 수정' })
+  @ApiResponse({ status: 200, description: '운동 세션 수정 성공' })
+  @Put('sessions/:id')
   async updateSession(
     @Headers('authorization') token: string,
     @Param('id') sessionId: string,
-    @Body() updateSessionDto: UpdateSessionDto
+    @Body() updateDto: UpdateSessionDto
   ) {
-    await this.authService.validateToken(token);
-    return this.exerciseService.updateSession(sessionId, updateSessionDto);
+    const userId = token.split(' ')[1];
+    return this.exerciseService.updateSession(sessionId, updateDto);
   }
 
-  @Get('sessions')
-  async getUserSessions(@Headers('authorization') token: string) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.getUserSessions(user.id);
+  @ApiOperation({ summary: '운동 세션 삭제' })
+  @ApiResponse({ status: 200, description: '운동 세션 삭제 성공' })
+  @Delete('sessions/:id')
+  async deleteSession(
+    @Headers('authorization') token: string,
+    @Param('id') sessionId: string
+  ) {
+    const userId = token.split(' ')[1];
+    return this.exerciseService.deleteSession(sessionId);
   }
 
+  @ApiOperation({ summary: '운동 통계 조회' })
+  @ApiResponse({ status: 200, description: '운동 통계 조회 성공' })
   @Get('stats')
-  async getSessionStats(@Headers('authorization') token: string) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.getSessionStats(user.id);
+  async getStats(@Headers('authorization') token: string) {
+    const userId = token.split(' ')[1];
+    return this.exerciseService.getStats(userId);
   }
 } 

@@ -32,13 +32,13 @@ async function bootstrap() {
 
     // Swagger 설정
     const config = new DocumentBuilder()
-      .setTitle('Ddait2 API')
-      .setDescription('The Ddait2 API description')
+      .setTitle('Ddait v2.0 API')
+      .setDescription('Ddait v2.0 API 문서')
       .setVersion('1.0')
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
+    SwaggerModule.setup('api', app, document);
 
     // 서버 시작
     await app.listen(env.PORT);

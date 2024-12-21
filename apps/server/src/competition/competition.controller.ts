@@ -1,63 +1,52 @@
-import { Body, Controller, Get, Post, Patch, Param, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { CompetitionService } from './competition.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { AuthService } from '../auth/auth.service';
-import { CreateCompetitionDto, UpdateCompetitionDto, MatchRequestDto } from './dto/competition.dto';
+import { CreateCompetitionDto, UpdateScoreDto } from './dto/competition.dto';
 
 @Controller('competition')
-@UseGuards(AuthGuard)
 export class CompetitionController {
-  constructor(
-    private readonly competitionService: CompetitionService,
-    private readonly authService: AuthService
-  ) {}
-
-  @Post()
-  async createCompetition(
-    @Headers('authorization') token: string,
-    @Body() createCompetitionDto: CreateCompetitionDto
-  ) {
-    const user = await this.authService.validateToken(token);
-    return this.competitionService.createCompetition(user.id, createCompetitionDto);
-  }
-
-  @Get(':id')
-  async getCompetition(
-    @Headers('authorization') token: string,
-    @Param('id') competitionId: string
-  ) {
-    await this.authService.validateToken(token);
-    return this.competitionService.getCompetition(competitionId);
-  }
-
-  @Patch(':id')
-  async updateCompetition(
-    @Headers('authorization') token: string,
-    @Param('id') competitionId: string,
-    @Body() updateCompetitionDto: UpdateCompetitionDto
-  ) {
-    const user = await this.authService.validateToken(token);
-    return this.competitionService.updateCompetition(competitionId, user.id, updateCompetitionDto);
-  }
+  constructor(private readonly competitionService: CompetitionService) {}
 
   @Post('match')
-  async findMatch(
-    @Headers('authorization') token: string,
-    @Body() matchRequestDto: MatchRequestDto
+  async startMatch(
+    @Query('userId') userId: string,
+    @Body() createDto: CreateCompetitionDto
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.competitionService.findMatch(user.id, matchRequestDto);
+    return this.competitionService.startMatching(userId, createDto);
   }
 
-  @Get()
-  async getUserCompetitions(@Headers('authorization') token: string) {
-    const user = await this.authService.validateToken(token);
-    return this.competitionService.getUserCompetitions(user.id);
+  @Get('matches')
+  async getMatches(
+    @Query('userId') userId: string,
+    @Query('status') status: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number
+  ) {
+    return this.competitionService.getMatches(userId, { status, page, limit });
+  }
+
+  @Get('matches/:matchId')
+  async getMatch(
+    @Param('matchId') matchId: string,
+    @Query('userId') userId: string
+  ) {
+    return this.competitionService.getMatch(userId, matchId);
+  }
+
+  @Post('matches/:matchId/score')
+  async updateScore(
+    @Param('matchId') matchId: string,
+    @Query('userId') userId: string,
+    @Body() updateDto: UpdateScoreDto
+  ) {
+    return this.competitionService.updateScore(userId, matchId, updateDto);
   }
 
   @Get('stats')
-  async getCompetitionStats(@Headers('authorization') token: string) {
-    const user = await this.authService.validateToken(token);
-    return this.competitionService.getCompetitionStats(user.id);
+  async getStats(
+    @Query('userId') userId: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string
+  ) {
+    return this.competitionService.getStats(userId, { startDate, endDate });
   }
 } 

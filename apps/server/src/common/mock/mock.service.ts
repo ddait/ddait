@@ -1,128 +1,178 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { CreateSessionDto, UpdateSessionDto } from '../../exercise/dto/exercise.dto';
+import { CreateCompetitionDto } from '../../competition/dto/competition.dto';
 
 @Injectable()
 export class MockService {
-  private mockUsers: Map<string, any> = new Map();
-  private mockSessions: Map<string, any> = new Map();
-  private mockCompetitions: Map<string, any> = new Map();
-
-  constructor() {
-    // 초기 더미 데이터 생성
-    this.initializeMockData();
+  // Auth related mocks
+  createMockUser(email: string) {
+    return {
+      id: '1',
+      email,
+      username: 'testuser',
+      avatarUrl: 'https://example.com/avatar.jpg'
+    };
   }
 
-  private initializeMockData() {
-    // 더미 유저 생성
-    const userId = uuidv4();
-    const mockUser = {
+  findMockUserByEmail(email: string) {
+    return {
+      id: '1',
+      email,
+      username: 'testuser',
+      avatarUrl: 'https://example.com/avatar.jpg'
+    };
+  }
+
+  getMockUser(userId: string) {
+    return {
       id: userId,
       email: 'test@example.com',
       username: 'testuser',
-      avatarUrl: 'https://example.com/avatar.jpg',
-      level: 1,
-      exp: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      avatarUrl: 'https://example.com/avatar.jpg'
     };
-    this.mockUsers.set(userId, mockUser);
+  }
 
-    // 더미 세션 생성
-    const sessionId = uuidv4();
-    const mockSession = {
-      id: sessionId,
+  generateMockTokens() {
+    return {
+      accessToken: 'mock_access_token',
+      refreshToken: 'mock_refresh_token'
+    };
+  }
+
+  // Exercise related mocks
+  createMockExerciseSession(userId: string, createDto: CreateSessionDto) {
+    return {
+      id: '1',
       userId,
+      ...createDto,
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  getMockExerciseSessions(userId: string, options: { page: number; limit: number }) {
+    return {
+      items: [
+        {
+          id: '1',
+          userId,
+          type: 'running',
+          duration: 30,
+          calories: 300,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      total: 1
+    };
+  }
+
+  getMockExerciseSession(sessionId: string) {
+    return {
+      id: sessionId,
+      userId: '1',
       type: 'running',
-      startTime: new Date(),
-      endTime: null,
-      duration: 0,
-      calories: 0,
-      status: 'active'
+      duration: 30,
+      calories: 300,
+      createdAt: new Date().toISOString()
     };
-    this.mockSessions.set(sessionId, mockSession);
-
-    // 더미 경쟁 생성
-    const competitionId = uuidv4();
-    const mockCompetition = {
-      id: competitionId,
-      type: '1v1',
-      status: 'waiting',
-      startTime: null,
-      endTime: null,
-      maxParticipants: 2,
-      currentParticipants: 1,
-      participants: [userId]
-    };
-    this.mockCompetitions.set(competitionId, mockCompetition);
   }
 
-  // Auth 관련 더미 데이터
-  getMockUser(userId: string) {
-    return this.mockUsers.get(userId);
-  }
-
-  createMockUser(userData: any) {
-    const userId = uuidv4();
-    const newUser = {
-      id: userId,
-      ...userData,
-      level: 1,
-      exp: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    this.mockUsers.set(userId, newUser);
-    return newUser;
-  }
-
-  // Exercise 관련 더미 데이터
-  getMockSession(sessionId: string) {
-    return this.mockSessions.get(sessionId);
-  }
-
-  createMockSession(userId: string, type: string) {
-    const sessionId = uuidv4();
-    const newSession = {
+  updateMockExerciseSession(sessionId: string, updateDto: UpdateSessionDto) {
+    return {
       id: sessionId,
+      userId: '1',
+      ...updateDto,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  deleteMockExerciseSession(sessionId: string) {
+    return { success: true };
+  }
+
+  getMockExerciseStats(userId: string) {
+    return {
+      totalSessions: 10,
+      totalDuration: 300,
+      totalCalories: 3000,
+      averageDuration: 30,
+      averageCalories: 300
+    };
+  }
+
+  getMockExerciseTemplates(category: string) {
+    return [
+      {
+        id: '1',
+        category,
+        name: 'Basic Workout',
+        description: 'A basic workout routine',
+        exercises: [
+          { name: 'Push-ups', sets: 3, reps: 10 },
+          { name: 'Squats', sets: 3, reps: 15 }
+        ]
+      }
+    ];
+  }
+
+  // Competition related mocks
+  createMockCompetition(userId: string, createDto: CreateCompetitionDto) {
+    return {
+      id: '1',
       userId,
-      type,
-      startTime: new Date(),
-      endTime: null,
-      duration: 0,
-      calories: 0,
-      status: 'active'
-    };
-    this.mockSessions.set(sessionId, newSession);
-    return newSession;
-  }
-
-  // Competition 관련 더미 데이터
-  getMockCompetition(competitionId: string) {
-    return this.mockCompetitions.get(competitionId);
-  }
-
-  createMockCompetition(type: string, userId: string) {
-    const competitionId = uuidv4();
-    const newCompetition = {
-      id: competitionId,
-      type,
+      ...createDto,
       status: 'waiting',
-      startTime: null,
-      endTime: null,
-      maxParticipants: 2,
-      currentParticipants: 1,
-      participants: [userId]
+      createdAt: new Date().toISOString()
     };
-    this.mockCompetitions.set(competitionId, newCompetition);
-    return newCompetition;
   }
 
-  // 유틸리티 메서드
-  generateMockToken() {
-    return `mock_token_${uuidv4()}`;
+  getMockCompetitions(userId: string, options: { status: string; page: number; limit: number }) {
+    return {
+      items: [
+        {
+          id: '1',
+          userId,
+          type: 'one_on_one',
+          status: options.status,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      total: 1
+    };
   }
 
-  generateMockRefreshToken() {
-    return `mock_refresh_token_${uuidv4()}`;
+  getMockCompetition(matchId: string) {
+    return {
+      id: matchId,
+      type: 'one_on_one',
+      status: 'in_progress',
+      participants: [
+        { userId: '1', score: 100 },
+        { userId: '2', score: 80 }
+      ],
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  updateMockCompetitionScore(matchId: string, userId: string, score: number) {
+    return {
+      id: matchId,
+      type: 'one_on_one',
+      status: 'in_progress',
+      participants: [
+        { userId, score },
+        { userId: '2', score: 80 }
+      ],
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  getMockCompetitionStats(userId: string, options: { startDate: string; endDate: string }) {
+    return {
+      totalMatches: 10,
+      wins: 7,
+      losses: 3,
+      winRate: 0.7,
+      averageScore: 85
+    };
   }
 } 

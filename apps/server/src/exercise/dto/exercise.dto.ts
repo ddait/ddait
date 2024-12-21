@@ -1,12 +1,11 @@
-import { IsString, IsNumber, IsOptional, IsDate, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsDate, IsEnum, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum ExerciseType {
-  RUNNING = 'running',
-  CYCLING = 'cycling',
-  WEIGHT_TRAINING = 'weight_training',
+  WEIGHT = 'weight',
+  CARDIO = 'cardio',
   YOGA = 'yoga',
-  SWIMMING = 'swimming'
+  OTHER = 'other'
 }
 
 export enum SessionStatus {
@@ -16,31 +15,83 @@ export enum SessionStatus {
 }
 
 export class CreateSessionDto {
-  @ApiProperty({ enum: ExerciseType })
+  @ApiProperty({
+    enum: ExerciseType,
+    example: ExerciseType.WEIGHT,
+    description: '운동 유형'
+  })
   @IsEnum(ExerciseType)
   type: ExerciseType;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty({
+    example: '가슴 운동',
+    description: '운동 제목'
+  })
   @IsString()
-  note?: string;
+  title: string;
+
+  @ApiProperty({
+    example: ['벤치프레스', '푸시업'],
+    description: '운동 목록',
+    required: false
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  exercises?: string[];
+
+  @ApiProperty({
+    example: 60,
+    description: '예상 운동 시간(분)',
+    required: false
+  })
+  @IsOptional()
+  @IsNumber()
+  duration?: number;
 }
 
 export class UpdateSessionDto {
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    example: '가슴 운동',
+    description: '운동 제목',
+    required: false
+  })
   @IsOptional()
-  @IsDate()
-  endTime?: Date;
+  @IsString()
+  title?: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    example: ['벤치프레스', '푸시업'],
+    description: '운동 목록',
+    required: false
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  exercises?: string[];
+
+  @ApiProperty({
+    example: 60,
+    description: '운동 시간(분)',
+    required: false
+  })
   @IsOptional()
   @IsNumber()
   duration?: number;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    example: 500,
+    description: '소모 칼로리',
+    required: false
+  })
   @IsOptional()
   @IsNumber()
   calories?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDate()
+  endTime?: Date;
 
   @ApiProperty({ required: false, enum: SessionStatus })
   @IsOptional()
@@ -54,26 +105,29 @@ export class UpdateSessionDto {
 }
 
 export class SessionResponseDto {
-  @ApiProperty()
+  @ApiProperty({ example: '1' })
   id: string;
 
-  @ApiProperty()
-  userId: string;
-
-  @ApiProperty({ enum: ExerciseType })
+  @ApiProperty({ enum: ExerciseType, example: ExerciseType.WEIGHT })
   type: ExerciseType;
 
-  @ApiProperty()
-  startTime: Date;
+  @ApiProperty({ example: '가슴 운동' })
+  title: string;
 
-  @ApiProperty({ required: false })
-  endTime?: Date;
+  @ApiProperty({ example: ['벤치프레스', '푸시업'] })
+  exercises: string[];
 
-  @ApiProperty()
+  @ApiProperty({ example: 60 })
   duration: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 500 })
   calories: number;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
+  startTime: Date;
+
+  @ApiProperty({ example: '2024-01-01T01:00:00Z' })
+  endTime: Date;
 
   @ApiProperty({ enum: SessionStatus })
   status: SessionStatus;

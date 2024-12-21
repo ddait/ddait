@@ -1,102 +1,78 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { AuthGuard } from '../../../auth/auth.guard';
-import { AuthService } from '../../../auth/auth.service';
+import { Controller, Post, Get, Put, Delete, Body, Param, Headers, UseGuards, Query } from '@nestjs/common';
 import { ExerciseService } from '../../../exercise/exercise.service';
-import { CreateExerciseSessionDto, UpdateExerciseSessionDto } from '../../../exercise/dto/exercise.dto';
+import { CreateSessionDto, UpdateSessionDto } from '../../../exercise/dto/exercise.dto';
+import { AuthGuard } from '../guards/auth.guard';
 
-@ApiTags('Mobile Exercise')
 @Controller('mobile/exercise')
 export class MobileExerciseController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly exerciseService: ExerciseService
-  ) {}
+  constructor(private readonly exerciseService: ExerciseService) {}
 
-  @Post('sessions')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Create a new exercise session' })
-  @ApiResponse({ status: 201, description: 'Exercise session created' })
+  @Post('sessions')
   async createSession(
     @Headers('authorization') token: string,
-    @Body() createDto: CreateExerciseSessionDto
+    @Body() createDto: CreateSessionDto
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.createSession(user.id, createDto);
+    const userId = token.split(' ')[1];
+    return this.exerciseService.createSession(userId, createDto);
   }
 
-  @Get('sessions')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get exercise sessions' })
-  @ApiResponse({ status: 200, description: 'Exercise sessions retrieved' })
+  @Get('sessions')
   async getSessions(
     @Headers('authorization') token: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10
+    @Query('page') page: number,
+    @Query('limit') limit: number
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.getSessions(user.id, { page, limit });
+    const userId = token.split(' ')[1];
+    return this.exerciseService.getSessions(userId, { page, limit });
   }
 
-  @Get('sessions/:id')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get exercise session by ID' })
-  @ApiResponse({ status: 200, description: 'Exercise session retrieved' })
+  @Get('sessions/:sessionId')
   async getSession(
     @Headers('authorization') token: string,
-    @Param('id') sessionId: string
+    @Param('sessionId') sessionId: string
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.getSession(user.id, sessionId);
+    const userId = token.split(' ')[1];
+    return this.exerciseService.getSession(sessionId);
   }
 
-  @Put('sessions/:id')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Update exercise session' })
-  @ApiResponse({ status: 200, description: 'Exercise session updated' })
+  @Put('sessions/:sessionId')
   async updateSession(
     @Headers('authorization') token: string,
-    @Param('id') sessionId: string,
-    @Body() updateDto: UpdateExerciseSessionDto
+    @Param('sessionId') sessionId: string,
+    @Body() updateDto: UpdateSessionDto
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.updateSession(user.id, sessionId, updateDto);
+    const userId = token.split(' ')[1];
+    return this.exerciseService.updateSession(sessionId, updateDto);
   }
 
-  @Delete('sessions/:id')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Delete exercise session' })
-  @ApiResponse({ status: 200, description: 'Exercise session deleted' })
+  @Delete('sessions/:sessionId')
   async deleteSession(
     @Headers('authorization') token: string,
-    @Param('id') sessionId: string
+    @Param('sessionId') sessionId: string
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.deleteSession(user.id, sessionId);
+    const userId = token.split(' ')[1];
+    return this.exerciseService.deleteSession(sessionId);
   }
 
-  @Get('stats')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get exercise statistics' })
-  @ApiResponse({ status: 200, description: 'Exercise statistics retrieved' })
+  @Get('stats')
   async getStats(
     @Headers('authorization') token: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string
   ) {
-    const user = await this.authService.validateToken(token);
-    return this.exerciseService.getStats(user.id, { startDate, endDate });
+    const userId = token.split(' ')[1];
+    return this.exerciseService.getStats(userId);
   }
 
-  @Get('templates')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get exercise templates' })
-  @ApiResponse({ status: 200, description: 'Exercise templates retrieved' })
-  async getTemplates(
-    @Headers('authorization') token: string,
-    @Query('category') category?: string
-  ) {
-    await this.authService.validateToken(token);
+  @Get('templates')
+  async getTemplates(@Query('category') category: string) {
     return this.exerciseService.getTemplates(category);
   }
 } 
