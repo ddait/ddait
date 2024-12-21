@@ -15,12 +15,10 @@ describe('ThemedText', () => {
               "fontSize": 16,
               "lineHeight": 24,
             },
-            {},
             {
-              "color": "#000000",
+              "color": "#11181C",
             },
             undefined,
-            false,
           ]
         }
       >

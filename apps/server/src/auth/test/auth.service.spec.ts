@@ -3,7 +3,6 @@ import { AuthService } from '../auth.service';
 import { MockService } from '../../mock/mock.service';
 import { SignUpDto, SignInDto } from '../dto/auth.dto';
 import { UnauthorizedException } from '@nestjs/common';
-import { MockModule } from '../../mock/mock.module';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -19,7 +18,6 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [MockModule],
       providers: [
         AuthService,
         {
@@ -31,6 +29,12 @@ describe('AuthService', () => {
               name: mockUser.name,
               avatarUrl: mockUser.avatarUrl,
             }),
+            findMockUserByEmail: jest.fn().mockImplementation((email) => {
+              if (email === mockUser.email) {
+                return Promise.resolve(mockUser);
+              }
+              return Promise.resolve(null);
+            }),
             generateMockTokens: jest.fn().mockResolvedValue({
               accessToken: 'test-token',
               refreshToken: 'refresh-token',
@@ -40,6 +44,12 @@ describe('AuthService', () => {
                 return Promise.resolve({ valid: true, id: mockUser.id });
               }
               return Promise.resolve({ valid: false, id: null });
+            }),
+            findMockUserById: jest.fn().mockImplementation((id) => {
+              if (id === mockUser.id) {
+                return Promise.resolve(mockUser);
+              }
+              return Promise.resolve(null);
             }),
           },
         },
@@ -88,6 +98,17 @@ describe('AuthService', () => {
           avatarUrl: mockUser.avatarUrl,
         },
       });
+    });
+
+    it('should throw UnauthorizedException for invalid credentials', async () => {
+      const signInDto: SignInDto = {
+        email: 'wrong@example.com',
+        password: 'wrongpassword',
+      };
+
+      await expect(service.signIn(signInDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 

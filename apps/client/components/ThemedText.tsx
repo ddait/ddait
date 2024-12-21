@@ -13,11 +13,11 @@ const ThemedText: React.FC<ThemedTextProps> = ({ children, style }) => {
   };
 
   const themeStyle: TextStyle = {
-    color: '#000000',
+    color: '#11181C',
   };
 
   return (
-    <Text style={[baseStyle, {}, themeStyle, style, false]}>
+    <Text style={[baseStyle, themeStyle, style]}>
       {children}
     </Text>
   );
