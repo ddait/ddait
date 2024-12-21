@@ -1,58 +1,43 @@
-import { Body, Controller, Get, Post, Headers, UseGuards } from '@nestjs/common';
+import { Controller, Get, Headers, UnauthorizedException, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { SignUpDto, SignInDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get('profile')
+  async getProfile(@Headers('authorization') token: string) {
+    if (!token || !token.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    const tokenValue = token.split(' ')[1];
+    const user = await this.authService.validateToken(tokenValue);
+    
+    if (!user) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return this.authService.getProfile(user.id);
+  }
+
   @Post('signup')
-  async signUp(
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Body('username') username: string
-  ) {
-    return this.authService.signUp(email, password, username);
+  async signUp(@Body() signUpDto: SignUpDto) {
+    return this.authService.signUp(signUpDto);
   }
 
   @Post('signin')
-  async signIn(
-    @Body('email') email: string,
-    @Body('password') password: string
-  ) {
-    return this.authService.signIn(email, password);
+  async signIn(@Body() signInDto: SignInDto) {
+    return this.authService.signIn(signInDto);
   }
 
-  @Get('google')
-  async signInWithGoogle() {
-    return this.authService.signInWithGoogle();
-  }
-
-  @Post('signout')
-  @UseGuards(AuthGuard)
-  async signOut(@Headers('authorization') token: string) {
-    return this.authService.signOut(token);
-  }
-
-  @Post('reset-password')
-  async resetPassword(@Body('email') email: string) {
-    return this.authService.resetPassword(email);
-  }
-
-  @Post('update-password')
-  @UseGuards(AuthGuard)
-  async updatePassword(@Body('newPassword') newPassword: string) {
-    return this.authService.updatePassword(newPassword);
-  }
-
-  @Get('user')
-  @UseGuards(AuthGuard)
-  async getUser(@Headers('authorization') token: string) {
-    return this.authService.getUser(token);
-  }
-
-  @Post('refresh')
-  async refreshToken(@Body('refreshToken') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  @Post('validate')
+  async validateToken(@Body('token') token: string) {
+    const result = await this.authService.validateToken(token);
+    if (!result.valid) {
+      throw new UnauthorizedException();
+    }
+    return result;
   }
 } 

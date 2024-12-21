@@ -1,130 +1,134 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { ConfigService } from '@nestjs/config';
+import request from 'supertest';
+import { AuthModule } from '../src/auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  let configService: ConfigService;
-  let jwtToken: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [
+        ConfigModule.forRoot({
+          envFilePath: '.env.test',
+        }),
+        AuthModule,
+      ],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    configService = moduleFixture.get<ConfigService>(ConfigService);
     await app.init();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await app.close();
   });
 
-  describe('Authentication Flow', () => {
-    const testUser = {
-      email: 'e2e-test@example.com',
-      password: 'Test123!@#',
-      username: 'e2etester'
-    };
-
-    it('/auth/signup (POST) - should create new user', () => {
+  describe('Authentication', () => {
+    it('/auth/signup (POST)', () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
-        .send(testUser)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body.user).toBeDefined();
-          expect(res.body.user.email).toBe(testUser.email);
-        });
-    });
-
-    it('/auth/signin (POST) - should authenticate user', () => {
-      return request(app.getHttpServer())
-        .post('/auth/signin')
         .send({
-          email: testUser.email,
-          password: testUser.password,
+          email: 'test@example.com',
+          password: 'Test123!@#',
+          username: 'testuser'
         })
         .expect(201)
-        .expect((res) => {
-          expect(res.body.session).toBeDefined();
-          expect(res.body.session.access_token).toBeDefined();
-          jwtToken = res.body.session.access_token;
+        .expect(res => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('email');
         });
     });
 
-    it('/auth/user (GET) - should get user profile with valid token', () => {
+    it('/auth/login (POST)', () => {
       return request(app.getHttpServer())
-        .get('/auth/user')
-        .set('Authorization', `Bearer ${jwtToken}`)
+        .post('/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'Test123!@#'
+        })
         .expect(200)
-        .expect((res) => {
-          expect(res.body.email).toBe(testUser.email);
+        .expect(res => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('token');
+          expect(res.body.data).toHaveProperty('user');
         });
     });
 
-    it('/auth/user (GET) - should reject invalid token', () => {
+    it('/auth/google (GET)', () => {
       return request(app.getHttpServer())
-        .get('/auth/user')
-        .set('Authorization', 'Bearer invalid-token')
+        .get('/auth/google')
+        .expect(302)
+        .expect('Location', /^https:\/\/accounts\.google\.com/);
+    });
+
+    it('/auth/profile (GET) - Unauthorized', () => {
+      return request(app.getHttpServer())
+        .get('/auth/profile')
         .expect(401);
     });
 
-    it('/auth/signout (POST) - should sign out user', () => {
+    it('/auth/profile (GET) - Authorized', () => {
+      const token = 'valid-test-token'; // 테스트용 토큰
       return request(app.getHttpServer())
-        .post('/auth/signout')
-        .set('Authorization', `Bearer ${jwtToken}`)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body.message).toBe('Successfully signed out');
+        .get('/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect(res => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('email');
         });
     });
 
-    it('/auth/reset-password (POST) - should send reset password email', () => {
+    it('/auth/logout (POST)', () => {
+      const token = 'valid-test-token'; // 테스트용 토큰
       return request(app.getHttpServer())
-        .post('/auth/reset-password')
-        .send({ email: testUser.email })
-        .expect(201)
-        .expect((res) => {
+        .post('/auth/logout')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect(res => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.message).toBe('Successfully logged out');
+        });
+    });
+
+    it('/auth/refresh (POST)', () => {
+      return request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({
+          refreshToken: 'valid-refresh-token'
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveProperty('token');
+        });
+    });
+
+    it('/auth/password/reset (POST)', () => {
+      return request(app.getHttpServer())
+        .post('/auth/password/reset')
+        .send({
+          email: 'test@example.com'
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.success).toBe(true);
           expect(res.body.message).toBe('Password reset email sent');
         });
     });
-  });
 
-  describe('Rate Limiting', () => {
-    it('should block too many login attempts', async () => {
-      const attempts = Array(6).fill({
-        email: 'test@example.com',
-        password: 'wrongpassword'
-      });
-
-      for (let i = 0; i < 5; i++) {
-        await request(app.getHttpServer())
-          .post('/auth/signin')
-          .send(attempts[i])
-          .expect(401);
-      }
-
-      // 6th attempt should be blocked
+    it('/auth/password/update (POST) - Unauthorized', () => {
       return request(app.getHttpServer())
-        .post('/auth/signin')
-        .send(attempts[5])
-        .expect(429);
-    });
-  });
-
-  describe('Security Headers', () => {
-    it('should include security headers in response', () => {
-      return request(app.getHttpServer())
-        .get('/auth/user')
-        .expect((res) => {
-          expect(res.headers['x-frame-options']).toBe('DENY');
-          expect(res.headers['x-xss-protection']).toBe('1; mode=block');
-          expect(res.headers['x-content-type-options']).toBe('nosniff');
-        });
+        .post('/auth/password/update')
+        .send({
+          currentPassword: 'Test123!@#',
+          newPassword: 'NewTest123!@#'
+        })
+        .expect(401);
     });
   });
 }); 

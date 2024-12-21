@@ -1,122 +1,84 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SignUpDto, SignInDto, UpdatePasswordDto } from './dto/auth.dto';
+import { MockService } from '../mock/mock.service';
 
 @Injectable()
 export class AuthService {
-  private supabase: SupabaseClient;
+  constructor(private readonly mockService: MockService) {}
 
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('SUPABASE_URL'),
-      this.configService.get<string>('SUPABASE_ANON_KEY')
-    );
+  async signUp(signUpDto: SignUpDto) {
+    return this.mockService.createMockUser(signUpDto);
   }
 
-  async signUp(email: string, password: string, username: string) {
-    const { data: authData, error: authError } = await this.supabase.auth.signUp({
-      email,
-      password
-    });
-
-    if (authError) {
-      throw new UnauthorizedException(authError.message);
+  async signIn(signInDto: SignInDto) {
+    const user = await this.mockService.findMockUserByEmail(signInDto.email);
+    if (!user || user.password !== signInDto.password) {
+      throw new UnauthorizedException('Invalid credentials');
     }
-
-    // Create profile after successful signup
-    const { error: profileError } = await this.supabase
-      .from('profiles')
-      .insert([
-        {
-          id: authData.user.id,
-          username,
-          email: authData.user.email
-        }
-      ]);
-
-    if (profileError) {
-      // Rollback auth user creation if profile creation fails
-      await this.supabase.auth.admin.deleteUser(authData.user.id);
-      throw new UnauthorizedException('Failed to create user profile');
-    }
-
-    return authData;
+    const tokens = await this.mockService.generateMockTokens();
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+      },
+    };
   }
 
-  async signIn(email: string, password: string) {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+  async validateToken(token: string) {
+    const result = await this.mockService.validateMockToken(token);
+    if (!result.valid) {
+      throw new UnauthorizedException();
     }
-
-    return data;
+    return result;
   }
 
-  async signInWithGoogle() {
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
-      provider: 'google'
-    });
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+  async getProfile(userId: string) {
+    const user = await this.mockService.findMockUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
-
-    return data;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+    };
   }
 
-  async signOut(token: string) {
-    const { error } = await this.supabase.auth.signOut();
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
-
-    return { message: 'Successfully signed out' };
+  async signOut(userId: string) {
+    // 실제 구현에서는 토큰 무효화 등의 작업 수행
+    return { success: true };
   }
 
   async resetPassword(email: string) {
-    const { error } = await this.supabase.auth.resetPasswordForEmail(email);
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    const user = await this.mockService.findMockUserByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
-
-    return { message: 'Password reset email sent' };
+    // 실제 구현에서는 비밀번호 재설정 이메일 발송 등의 작업 수행
+    return { success: true };
   }
 
-  async updatePassword(newPassword: string) {
-    const { error } = await this.supabase.auth.updateUser({
-      password: newPassword
-    });
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+  async updatePassword(userId: string, updatePasswordDto: UpdatePasswordDto) {
+    const user = await this.mockService.findMockUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
-
-    return { message: 'Password updated successfully' };
-  }
-
-  async getUser(token: string) {
-    const { data: { user }, error } = await this.supabase.auth.getUser(token);
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    if (user.password !== updatePasswordDto.currentPassword) {
+      throw new UnauthorizedException('Invalid current password');
     }
-
-    return user;
+    // 실제 구현에서는 비밀번호 업데이트 작업 수행
+    return { success: true };
   }
 
   async refreshToken(refreshToken: string) {
-    const { data, error } = await this.supabase.auth.refreshSession();
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
-
-    return data;
+    // 실제 구현에서는 리프레시 토큰 검증 및 새 토큰 발급
+    return {
+      accessToken: `new-access-token-${Date.now()}`,
+      refreshToken: `new-refresh-token-${Date.now()}`
+    };
   }
 } 

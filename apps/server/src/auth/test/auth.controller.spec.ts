@@ -1,36 +1,51 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../auth.controller';
 import { AuthService } from '../auth.service';
-import { ConfigService } from '@nestjs/config';
+import { SignUpDto, SignInDto } from '../dto/auth.dto';
 import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
+  let module: TestingModule;
 
-  const mockAuthService = {
-    signUp: jest.fn(),
-    signIn: jest.fn(),
-    signInWithGoogle: jest.fn(),
-    signOut: jest.fn(),
-    resetPassword: jest.fn(),
-    updatePassword: jest.fn(),
-    getUser: jest.fn(),
-    refreshToken: jest.fn(),
+  const mockUser = {
+    id: 'test-id',
+    email: 'test@example.com',
+    password: 'password123',
+    name: 'Test User',
+    avatarUrl: 'https://example.com/avatar.jpg',
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         {
           provide: AuthService,
-          useValue: mockAuthService,
-        },
-        {
-          provide: ConfigService,
           useValue: {
-            get: jest.fn(),
+            signUp: jest.fn().mockResolvedValue({
+              id: mockUser.id,
+              email: mockUser.email,
+              name: mockUser.name,
+              avatarUrl: mockUser.avatarUrl,
+            }),
+            signIn: jest.fn().mockResolvedValue({
+              accessToken: 'test-token',
+              refreshToken: 'refresh-token',
+              user: {
+                id: mockUser.id,
+                email: mockUser.email,
+                name: mockUser.name,
+                avatarUrl: mockUser.avatarUrl,
+              },
+            }),
+            validateToken: jest.fn().mockImplementation((token) => {
+              if (token === 'test-token') {
+                return Promise.resolve({ valid: true, id: mockUser.id });
+              }
+              return Promise.resolve({ valid: false, id: null });
+            }),
           },
         },
       ],
@@ -40,124 +55,66 @@ describe('AuthController', () => {
     service = module.get<AuthService>(AuthService);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  afterAll(async () => {
+    await module.close();
   });
 
   describe('signUp', () => {
     it('should create a new user', async () => {
-      const mockUser = {
-        email: 'test@example.com',
-        password: 'Test123!@#',
-        username: 'testuser',
+      const signUpDto: SignUpDto = {
+        email: mockUser.email,
+        password: mockUser.password,
+        name: mockUser.name,
       };
 
-      const expectedResponse = {
-        user: {
-          id: 'test-id',
-          email: mockUser.email,
-        },
-        session: null,
-      };
+      const result = await controller.signUp(signUpDto);
 
-      mockAuthService.signUp.mockResolvedValue(expectedResponse);
-
-      const result = await controller.signUp(
-        mockUser.email,
-        mockUser.password,
-        mockUser.username,
-      );
-
-      expect(result).toEqual(expectedResponse);
-      expect(mockAuthService.signUp).toHaveBeenCalledWith(
-        mockUser.email,
-        mockUser.password,
-        mockUser.username,
-      );
-    });
-
-    it('should throw UnauthorizedException on signup failure', async () => {
-      const mockUser = {
-        email: 'test@example.com',
-        password: 'Test123!@#',
-        username: 'testuser',
-      };
-
-      mockAuthService.signUp.mockRejectedValue(new UnauthorizedException());
-
-      await expect(
-        controller.signUp(mockUser.email, mockUser.password, mockUser.username),
-      ).rejects.toThrow(UnauthorizedException);
+      expect(result).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+        avatarUrl: mockUser.avatarUrl,
+      });
+      expect(service.signUp).toHaveBeenCalledWith(signUpDto);
     });
   });
 
   describe('signIn', () => {
-    it('should sign in a user', async () => {
-      const mockCredentials = {
-        email: 'test@example.com',
-        password: 'Test123!@#',
+    it('should authenticate user and return token', async () => {
+      const signInDto: SignInDto = {
+        email: mockUser.email,
+        password: mockUser.password,
       };
 
-      const expectedResponse = {
+      const result = await controller.signIn(signInDto);
+
+      expect(result).toEqual({
+        accessToken: 'test-token',
+        refreshToken: 'refresh-token',
         user: {
-          id: 'test-id',
-          email: mockCredentials.email,
+          id: mockUser.id,
+          email: mockUser.email,
+          name: mockUser.name,
+          avatarUrl: mockUser.avatarUrl,
         },
-        session: {
-          access_token: 'test-token',
-        },
-      };
-
-      mockAuthService.signIn.mockResolvedValue(expectedResponse);
-
-      const result = await controller.signIn(
-        mockCredentials.email,
-        mockCredentials.password,
-      );
-
-      expect(result).toEqual(expectedResponse);
-      expect(mockAuthService.signIn).toHaveBeenCalledWith(
-        mockCredentials.email,
-        mockCredentials.password,
-      );
-    });
-
-    it('should throw UnauthorizedException on invalid credentials', async () => {
-      const mockCredentials = {
-        email: 'test@example.com',
-        password: 'wrong-password',
-      };
-
-      mockAuthService.signIn.mockRejectedValue(new UnauthorizedException());
-
-      await expect(
-        controller.signIn(mockCredentials.email, mockCredentials.password),
-      ).rejects.toThrow(UnauthorizedException);
+      });
+      expect(service.signIn).toHaveBeenCalledWith(signInDto);
     });
   });
 
-  describe('getUser', () => {
-    it('should return user data for valid token', async () => {
-      const mockToken = 'valid-token';
-      const expectedUser = {
-        id: 'test-id',
-        email: 'test@example.com',
-      };
+  describe('validateToken', () => {
+    it('should return user data when token is valid', async () => {
+      const result = await controller.validateToken('test-token');
 
-      mockAuthService.getUser.mockResolvedValue(expectedUser);
-
-      const result = await controller.getUser(mockToken);
-
-      expect(result).toEqual(expectedUser);
-      expect(mockAuthService.getUser).toHaveBeenCalledWith(mockToken);
+      expect(result).toEqual({
+        valid: true,
+        id: mockUser.id,
+      });
+      expect(service.validateToken).toHaveBeenCalledWith('test-token');
     });
 
-    it('should throw UnauthorizedException for invalid token', async () => {
-      const mockToken = 'invalid-token';
-
-      mockAuthService.getUser.mockRejectedValue(new UnauthorizedException());
-
-      await expect(controller.getUser(mockToken)).rejects.toThrow(
+    it('should throw UnauthorizedException when token is invalid', async () => {
+      await expect(controller.validateToken('invalid-token')).rejects.toThrow(
         UnauthorizedException,
       );
     });

@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsString, IsEmail, MinLength, IsOptional } from 'class-validator';
 
 export class SignUpDto {
   @IsEmail()
@@ -9,8 +9,7 @@ export class SignUpDto {
   password: string;
 
   @IsString()
-  @MinLength(3)
-  username: string;
+  name: string;
 }
 
 export class SignInDto {
@@ -24,6 +23,10 @@ export class SignInDto {
 export class UpdatePasswordDto {
   @IsString()
   @MinLength(8)
+  currentPassword: string;
+
+  @IsString()
+  @MinLength(8)
   newPassword: string;
 }
 
@@ -35,16 +38,4 @@ export class ResetPasswordDto {
 export class RefreshTokenDto {
   @IsString()
   refreshToken: string;
-}
-
-export class AuthResponseDto {
-  @IsString()
-  token: string;
-
-  @IsOptional()
-  @IsString()
-  refreshToken?: string;
-
-  @IsOptional()
-  user?: any;
 } 

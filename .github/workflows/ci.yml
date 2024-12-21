@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build and Test
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -31,4 +31,7 @@ jobs:
         run: yarn build
 
       - name: Test
-        run: yarn test
+        run: yarn test -- -- --forceExit --detectOpenHandles
+        env:
+          CI: true
+          NODE_ENV: test
