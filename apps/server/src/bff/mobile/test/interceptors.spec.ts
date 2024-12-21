@@ -6,19 +6,24 @@ import { TestController } from './test.controller';
 
 describe('Mobile BFF Interceptors', () => {
   let app: INestApplication;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [TestController],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = module.createNestApplication();
     app.useGlobalInterceptors(new MobileResponseInterceptor());
     await app.init();
   });
 
   afterEach(async () => {
     await app.close();
+  });
+
+  afterAll(async () => {
+    await module.close();
   });
 
   describe('응답 인터셉터', () => {

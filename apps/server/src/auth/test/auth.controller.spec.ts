@@ -7,6 +7,7 @@ import { UnauthorizedException } from '@nestjs/common';
 describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
+  let module: TestingModule;
 
   const mockUser = {
     id: 'test-id',
@@ -17,7 +18,7 @@ describe('AuthController', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         {
@@ -52,6 +53,10 @@ describe('AuthController', () => {
 
     controller = module.get<AuthController>(AuthController);
     service = module.get<AuthService>(AuthService);
+  });
+
+  afterAll(async () => {
+    await module.close();
   });
 
   describe('signUp', () => {
