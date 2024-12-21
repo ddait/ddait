@@ -1,18 +1,31 @@
 import { Module } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MobileAuthController } from './controllers/auth.controller';
+import { MobileExerciseController } from './controllers/exercise.controller';
+import { MobileCompetitionController } from './controllers/competition.controller';
+import { MobileSocialController } from './controllers/social.controller';
 import { MobileResponseInterceptor } from './interceptors/response.interceptor';
 import { MobileCacheInterceptor } from './interceptors/cache.interceptor';
 import { MobileBatteryOptimizationInterceptor } from './interceptors/battery.interceptor';
 import { MobileNetworkOptimizationInterceptor } from './interceptors/network.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MobileErrorFilter } from './filters/error.filter';
+import { AuthModule } from '../../auth/auth.module';
+import { ExerciseModule } from '../../exercise/exercise.module';
+import { CompetitionModule } from '../../competition/competition.module';
+import { SocialModule } from '../../social/social.module';
 
 @Module({
   imports: [
-    CacheModule.register({
-      ttl: 300, // 기본 TTL: 5분
-      max: 100, // 최대 캐시 항목 수
-      isGlobal: true,
-    }),
+    AuthModule,
+    ExerciseModule,
+    CompetitionModule,
+    SocialModule,
+  ],
+  controllers: [
+    MobileAuthController,
+    MobileExerciseController,
+    MobileCompetitionController,
+    MobileSocialController,
   ],
   providers: [
     {
@@ -31,6 +44,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
       provide: APP_INTERCEPTOR,
       useClass: MobileNetworkOptimizationInterceptor,
     },
+    MobileErrorFilter,
   ],
 })
 export class MobileBffModule {} 

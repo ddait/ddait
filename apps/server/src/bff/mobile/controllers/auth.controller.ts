@@ -1,48 +1,73 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Headers, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AuthService } from '../../../auth/auth.service';
 import { AuthGuard } from '../../../auth/auth.guard';
+import { SignUpDto, SignInDto, UpdatePasswordDto } from '../../../auth/dto/auth.dto';
 
+@ApiTags('Mobile Auth')
 @Controller('mobile/auth')
 export class MobileAuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post('signup')
-  async signup(@Body() signupDto: any) {
-    // 모바일에 최적화된 회원가입 응답
-    return {
-      success: true,
-      data: {
-        // 필요한 최소한의 사용자 정보만 반환
-        id: 'user-id',
-        email: signupDto.email,
-      }
-    };
+  @ApiOperation({ summary: 'Sign up a new user' })
+  @ApiResponse({ status: 201, description: 'User successfully created' })
+  async signUp(@Body() signUpDto: SignUpDto) {
+    return this.authService.signUp(signUpDto);
   }
 
-  @Post('login')
-  async login(@Body() loginDto: any) {
-    // 모바일에 최적화된 로그인 응답
-    return {
-      success: true,
-      data: {
-        token: 'access-token',
-        user: {
-          id: 'user-id',
-          email: loginDto.email,
-        }
-      }
-    };
+  @Post('signin')
+  @ApiOperation({ summary: 'Sign in a user' })
+  @ApiResponse({ status: 200, description: 'User successfully signed in' })
+  async signIn(@Body() signInDto: SignInDto) {
+    return this.authService.signIn(signInDto);
+  }
+
+  @Post('signout')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Sign out a user' })
+  @ApiResponse({ status: 200, description: 'User successfully signed out' })
+  async signOut(@Headers('authorization') token: string) {
+    const user = await this.authService.validateToken(token);
+    return this.authService.signOut(user.id);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset user password' })
+  @ApiResponse({ status: 200, description: 'Password reset email sent' })
+  async resetPassword(@Body('email') email: string) {
+    return this.authService.resetPassword(email);
+  }
+
+  @Post('update-password')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Update user password' })
+  @ApiResponse({ status: 200, description: 'Password successfully updated' })
+  async updatePassword(
+    @Headers('authorization') token: string,
+    @Body() updatePasswordDto: UpdatePasswordDto
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.authService.updatePassword(
+      user.id,
+      updatePasswordDto.currentPassword,
+      updatePasswordDto.newPassword
+    );
   }
 
   @Get('profile')
   @UseGuards(AuthGuard)
-  async getProfile() {
-    // 모바일에 최적화된 프로필 정보
-    return {
-      success: true,
-      data: {
-        id: 'user-id',
-        email: 'user@example.com',
-        name: 'User Name',
-        avatar: 'avatar-url'
-      }
-    };
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({ status: 200, description: 'User profile retrieved' })
+  async getProfile(@Headers('authorization') token: string) {
+    const user = await this.authService.validateToken(token);
+    return this.authService.getProfile(user.id);
+  }
+
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Token successfully refreshed' })
+  async refreshToken(@Body('refreshToken') refreshToken: string) {
+    return this.authService.refreshToken(refreshToken);
   }
 } 

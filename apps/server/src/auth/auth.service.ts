@@ -1,52 +1,20 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseService } from '../supabase/supabase.service';
+import { SignUpDto, SignInDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
-  private supabase: SupabaseClient;
+  constructor(private readonly supabaseService: SupabaseService) {}
 
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('SUPABASE_URL'),
-      this.configService.get<string>('SUPABASE_ANON_KEY')
-    );
-  }
-
-  async signUp(email: string, password: string, username: string) {
-    const { data: authData, error: authError } = await this.supabase.auth.signUp({
-      email,
-      password
-    });
-
-    if (authError) {
-      throw new UnauthorizedException(authError.message);
-    }
-
-    // Create profile after successful signup
-    const { error: profileError } = await this.supabase
-      .from('profiles')
-      .insert([
-        {
-          id: authData.user.id,
-          username,
-          email: authData.user.email
-        }
-      ]);
-
-    if (profileError) {
-      // Rollback auth user creation if profile creation fails
-      await this.supabase.auth.admin.deleteUser(authData.user.id);
-      throw new UnauthorizedException('Failed to create user profile');
-    }
-
-    return authData;
-  }
-
-  async signIn(email: string, password: string) {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email,
-      password
+  async signUp(signUpDto: SignUpDto) {
+    const { data, error } = await this.supabaseService.auth.signUp({
+      email: signUpDto.email,
+      password: signUpDto.password,
+      options: {
+        data: {
+          username: signUpDto.username,
+        },
+      },
     });
 
     if (error) {
@@ -56,9 +24,10 @@ export class AuthService {
     return data;
   }
 
-  async signInWithGoogle() {
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
-      provider: 'google'
+  async signIn(signInDto: SignInDto) {
+    const { data, error } = await this.supabaseService.auth.signInWithPassword({
+      email: signInDto.email,
+      password: signInDto.password,
     });
 
     if (error) {
@@ -68,8 +37,8 @@ export class AuthService {
     return data;
   }
 
-  async signOut(token: string) {
-    const { error } = await this.supabase.auth.signOut();
+  async signOut(userId: string) {
+    const { error } = await this.supabaseService.auth.signOut();
 
     if (error) {
       throw new UnauthorizedException(error.message);
@@ -79,7 +48,7 @@ export class AuthService {
   }
 
   async resetPassword(email: string) {
-    const { error } = await this.supabase.auth.resetPasswordForEmail(email);
+    const { error } = await this.supabaseService.auth.resetPasswordForEmail(email);
 
     if (error) {
       throw new UnauthorizedException(error.message);
@@ -88,9 +57,31 @@ export class AuthService {
     return { message: 'Password reset email sent' };
   }
 
-  async updatePassword(newPassword: string) {
-    const { error } = await this.supabase.auth.updateUser({
-      password: newPassword
+  async updatePassword(userId: string, currentPassword: string, newPassword: string) {
+    // First get user email
+    const { data: userData, error: userError } = await this.supabaseService
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !userData) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Verify current password
+    const { data: { user }, error: verifyError } = await this.supabaseService.auth.signInWithPassword({
+      email: userData.email,
+      password: currentPassword,
+    });
+
+    if (verifyError || user.id !== userId) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Update password
+    const { error } = await this.supabaseService.auth.updateUser({
+      password: newPassword,
     });
 
     if (error) {
@@ -100,18 +91,34 @@ export class AuthService {
     return { message: 'Password updated successfully' };
   }
 
-  async getUser(token: string) {
-    const { data: { user }, error } = await this.supabase.auth.getUser(token);
+  async validateToken(token: string) {
+    const { data: { user }, error } = await this.supabaseService.auth.getUser(token);
 
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    if (error || !user) {
+      throw new UnauthorizedException('Invalid token');
     }
 
     return user;
   }
 
+  async getProfile(userId: string) {
+    const { data, error } = await this.supabaseService
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      throw new UnauthorizedException(error.message);
+    }
+
+    return data;
+  }
+
   async refreshToken(refreshToken: string) {
-    const { data, error } = await this.supabase.auth.refreshSession();
+    const { data, error } = await this.supabaseService.auth.refreshSession({
+      refresh_token: refreshToken,
+    });
 
     if (error) {
       throw new UnauthorizedException(error.message);

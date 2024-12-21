@@ -1,37 +1,33 @@
 import { Body, Controller, Get, Post, Headers, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
+import { SignUpDto, SignInDto, UpdatePasswordDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  async signUp(
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Body('username') username: string
-  ) {
-    return this.authService.signUp(email, password, username);
+  async signUp(@Body() signUpDto: SignUpDto) {
+    return this.authService.signUp(signUpDto);
   }
 
   @Post('signin')
-  async signIn(
-    @Body('email') email: string,
-    @Body('password') password: string
-  ) {
-    return this.authService.signIn(email, password);
+  async signIn(@Body() signInDto: SignInDto) {
+    return this.authService.signIn(signInDto);
   }
 
   @Get('google')
-  async signInWithGoogle() {
-    return this.authService.signInWithGoogle();
+  async googleAuth() {
+    // Google OAuth 로그인 엔드포인트는 별도로 구현 필요
+    throw new Error('Not implemented');
   }
 
   @Post('signout')
   @UseGuards(AuthGuard)
   async signOut(@Headers('authorization') token: string) {
-    return this.authService.signOut(token);
+    const user = await this.authService.validateToken(token);
+    return this.authService.signOut(user.id);
   }
 
   @Post('reset-password')
@@ -41,14 +37,23 @@ export class AuthController {
 
   @Post('update-password')
   @UseGuards(AuthGuard)
-  async updatePassword(@Body('newPassword') newPassword: string) {
-    return this.authService.updatePassword(newPassword);
+  async updatePassword(
+    @Headers('authorization') token: string,
+    @Body() updatePasswordDto: UpdatePasswordDto
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.authService.updatePassword(
+      user.id,
+      updatePasswordDto.currentPassword,
+      updatePasswordDto.newPassword
+    );
   }
 
-  @Get('user')
+  @Get('profile')
   @UseGuards(AuthGuard)
-  async getUser(@Headers('authorization') token: string) {
-    return this.authService.getUser(token);
+  async getProfile(@Headers('authorization') token: string) {
+    const user = await this.authService.validateToken(token);
+    return this.authService.getProfile(user.id);
   }
 
   @Post('refresh')

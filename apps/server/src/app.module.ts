@@ -1,16 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MobileBffModule } from './bff/mobile/mobile-bff.module';
-import mobileBffConfig from './bff/mobile/config/mobile-bff.config';
+import { AuthModule } from './auth/auth.module';
+import { SupabaseModule } from './supabase/supabase.module';
+import { BffModule } from './bff/bff.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [mobileBffConfig],
-      envFilePath: ['.env.mobile', '.env'],
+      envFilePath: ['.env.local', '.env'],
     }),
-    MobileBffModule,
+    SupabaseModule,
+    AuthModule,
+    BffModule,
   ],
 })
 export class AppModule {}

@@ -1,72 +1,93 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Headers, UseGuards, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../../../auth/auth.guard';
+import { AuthService } from '../../../auth/auth.service';
+import { CompetitionService } from '../../../competition/competition.service';
+import { CreateCompetitionDto, UpdateScoreDto } from '../../../competition/dto/competition.dto';
 
+@ApiTags('Mobile Competition')
 @Controller('mobile/competition')
-@UseGuards(AuthGuard)
 export class MobileCompetitionController {
-  @Post('match')
-  async findMatch(@Body() matchDto: any) {
-    // 모바일에 최적화된 매칭 응답
-    return {
-      success: true,
-      data: {
-        matchId: 'match-id',
-        status: 'searching',
-        estimatedTime: 30 // 예상 대기 시간(초)
-      }
-    };
+  constructor(
+    private readonly authService: AuthService,
+    private readonly competitionService: CompetitionService
+  ) {}
+
+  @Post('matches')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Find a match' })
+  @ApiResponse({ status: 201, description: 'Match found' })
+  async findMatch(
+    @Headers('authorization') token: string,
+    @Body() createDto: CreateCompetitionDto
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.competitionService.findMatch(user.id, createDto);
   }
 
-  @Get('match/:id')
-  async getMatchStatus(@Param('id') id: string) {
-    // 모바일에 최적화된 매칭 상태 조회
-    return {
-      success: true,
-      data: {
-        matchId: id,
-        status: 'matched',
-        opponent: {
-          id: 'opponent-id',
-          name: 'Opponent',
-          level: 5
-        }
-      }
-    };
+  @Get('matches')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get user matches' })
+  @ApiResponse({ status: 200, description: 'Matches retrieved' })
+  async getMatches(
+    @Headers('authorization') token: string,
+    @Query('status') status?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.competitionService.getMatches(user.id, { status, page, limit });
   }
 
-  @Post('score')
-  async updateScore(@Body() scoreDto: any) {
-    // 모바일에 최적화된 점수 업데이트
-    return {
-      success: true,
-      data: {
-        currentScore: scoreDto.score,
-        rank: 1,
-        totalParticipants: 2
-      }
-    };
+  @Get('matches/:id')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get match details' })
+  @ApiResponse({ status: 200, description: 'Match details retrieved' })
+  async getMatch(
+    @Headers('authorization') token: string,
+    @Param('id') matchId: string
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.competitionService.getMatch(user.id, matchId);
+  }
+
+  @Put('matches/:id/score')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Update match score' })
+  @ApiResponse({ status: 200, description: 'Score updated' })
+  async updateScore(
+    @Headers('authorization') token: string,
+    @Param('id') matchId: string,
+    @Body() updateDto: UpdateScoreDto
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.competitionService.updateScore(user.id, matchId, updateDto);
   }
 
   @Get('leaderboard')
-  async getLeaderboard() {
-    // 모바일에 최적화된 리더보드
-    return {
-      success: true,
-      data: {
-        rankings: [
-          {
-            rank: 1,
-            userId: 'user-1',
-            name: 'User 1',
-            score: 100
-          }
-        ],
-        // 모바일에 필요한 최소한의 메타데이터
-        meta: {
-          total: 1,
-          userRank: 1
-        }
-      }
-    };
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get leaderboard' })
+  @ApiResponse({ status: 200, description: 'Leaderboard retrieved' })
+  async getLeaderboard(
+    @Headers('authorization') token: string,
+    @Query('timeRange') timeRange: string = 'week',
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ) {
+    await this.authService.validateToken(token);
+    return this.competitionService.getLeaderboard({ timeRange, page, limit });
+  }
+
+  @Get('stats')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get competition statistics' })
+  @ApiResponse({ status: 200, description: 'Statistics retrieved' })
+  async getStats(
+    @Headers('authorization') token: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string
+  ) {
+    const user = await this.authService.validateToken(token);
+    return this.competitionService.getStats(user.id, { startDate, endDate });
   }
 } 
