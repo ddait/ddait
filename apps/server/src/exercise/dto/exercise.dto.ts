@@ -1,67 +1,59 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber, IsObject, IsDateString } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsDate, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum ExerciseType {
-  RUNNING = 'RUNNING',
-  CYCLING = 'CYCLING',
-  SWIMMING = 'SWIMMING',
-  WEIGHT_TRAINING = 'WEIGHT_TRAINING',
-  YOGA = 'YOGA',
-  OTHER = 'OTHER'
+  RUNNING = 'running',
+  CYCLING = 'cycling',
+  WEIGHT_TRAINING = 'weight_training',
+  YOGA = 'yoga',
+  SWIMMING = 'swimming'
 }
 
-export enum ExerciseStatus {
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+export enum SessionStatus {
+  ACTIVE = 'active',
+  PAUSED = 'paused',
+  COMPLETED = 'completed'
 }
 
-export class CreateExerciseSessionDto {
-  @ApiProperty({ enum: ExerciseType, description: '운동 유형' })
+export class CreateSessionDto {
+  @ApiProperty({ enum: ExerciseType })
   @IsEnum(ExerciseType)
-  @IsNotEmpty()
-  exerciseType: ExerciseType;
+  type: ExerciseType;
 
-  @ApiProperty({ description: '운동 시작 시간' })
-  @IsDateString()
-  @IsNotEmpty()
-  startTime: string;
-
-  @ApiProperty({ description: '추가 메타데이터', required: false })
-  @IsObject()
+  @ApiProperty({ required: false })
   @IsOptional()
-  metadata?: Record<string, any>;
+  @IsString()
+  note?: string;
 }
 
-export class UpdateExerciseSessionDto {
-  @ApiProperty({ description: '운동 종료 시간', required: false })
-  @IsDateString()
+export class UpdateSessionDto {
+  @ApiProperty({ required: false })
   @IsOptional()
-  endTime?: string;
+  @IsDate()
+  endTime?: Date;
 
-  @ApiProperty({ description: '운동 시간(초)', required: false })
-  @IsNumber()
+  @ApiProperty({ required: false })
   @IsOptional()
+  @IsNumber()
   duration?: number;
 
-  @ApiProperty({ description: '소모 칼로리', required: false })
-  @IsNumber()
+  @ApiProperty({ required: false })
   @IsOptional()
+  @IsNumber()
   calories?: number;
 
-  @ApiProperty({ enum: ExerciseStatus, description: '운동 상태', required: false })
-  @IsEnum(ExerciseStatus)
+  @ApiProperty({ required: false, enum: SessionStatus })
   @IsOptional()
-  status?: ExerciseStatus;
+  @IsEnum(SessionStatus)
+  status?: SessionStatus;
 
-  @ApiProperty({ description: '추가 메타데이터', required: false })
-  @IsObject()
+  @ApiProperty({ required: false })
   @IsOptional()
-  metadata?: Record<string, any>;
+  @IsString()
+  note?: string;
 }
 
-export class ExerciseSessionResponseDto {
+export class SessionResponseDto {
   @ApiProperty()
   id: string;
 
@@ -69,54 +61,29 @@ export class ExerciseSessionResponseDto {
   userId: string;
 
   @ApiProperty({ enum: ExerciseType })
-  exerciseType: ExerciseType;
+  type: ExerciseType;
 
   @ApiProperty()
-  startTime: string;
+  startTime: Date;
 
   @ApiProperty({ required: false })
-  endTime?: string;
-
-  @ApiProperty({ required: false })
-  duration?: number;
-
-  @ApiProperty({ required: false })
-  calories?: number;
-
-  @ApiProperty({ enum: ExerciseStatus })
-  status: ExerciseStatus;
-
-  @ApiProperty({ required: false })
-  metadata?: Record<string, any>;
+  endTime?: Date;
 
   @ApiProperty()
-  createdAt: string;
+  duration: number;
 
   @ApiProperty()
-  updatedAt: string;
-}
+  calories: number;
 
-export class ExerciseStatsDto {
-  @ApiProperty({ description: '총 운동 세션 수' })
-  totalSessions: number;
+  @ApiProperty({ enum: SessionStatus })
+  status: SessionStatus;
 
-  @ApiProperty({ description: '총 운동 시간(초)' })
-  totalDuration: number;
+  @ApiProperty({ required: false })
+  note?: string;
 
-  @ApiProperty({ description: '총 소모 칼로리' })
-  totalCalories: number;
+  @ApiProperty()
+  createdAt: Date;
 
-  @ApiProperty({ description: '평균 운동 시간(초)' })
-  averageDuration: number;
-
-  @ApiProperty({ enum: ExerciseType, description: '가장 많이 한 운동 유형', required: false })
-  mostFrequentType: ExerciseType | null;
-}
-
-export class ExerciseSessionsResponseDto {
-  @ApiProperty({ type: [ExerciseSessionResponseDto] })
-  sessions: ExerciseSessionResponseDto[];
-
-  @ApiProperty({ description: '전체 세션 수' })
-  total: number;
+  @ApiProperty()
+  updatedAt: Date;
 } 

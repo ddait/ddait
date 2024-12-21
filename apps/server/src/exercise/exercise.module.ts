@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
+import { ExerciseController } from './exercise.controller';
 import { ExerciseService } from './exercise.service';
-import { SupabaseModule } from '../supabase/supabase.module';
+import { AuthModule } from '../auth/auth.module';
+import { MockModule } from '../common/mock/mock.module';
 
 @Module({
-  imports: [SupabaseModule],
+  imports: [AuthModule, MockModule],
+  controllers: [ExerciseController],
   providers: [ExerciseService],
   exports: [ExerciseService],
 })

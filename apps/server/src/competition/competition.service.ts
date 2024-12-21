@@ -1,229 +1,164 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { SupabaseService } from '../supabase/supabase.service';
-import { CreateCompetitionDto, UpdateScoreDto } from './dto/competition.dto';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { MockService } from '../common/mock/mock.service';
+import { CreateCompetitionDto, UpdateCompetitionDto, CompetitionStatus, CompetitionType, MatchRequestDto } from './dto/competition.dto';
 
 @Injectable()
 export class CompetitionService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(private readonly mockService: MockService) {}
 
-  async findMatch(userId: string, createDto: CreateCompetitionDto) {
-    // First, check if there's an available match
-    const { data: existingMatch, error: searchError } = await this.supabaseService
-      .from('competitions')
-      .select('*')
-      .eq('status', 'WAITING')
-      .eq('type', createDto.type)
-      .neq('creator_id', userId)
-      .single();
-
-    if (searchError && searchError.code !== 'PGRST116') {
-      throw new UnauthorizedException(searchError.message);
-    }
-
-    if (existingMatch) {
-      // Join existing match
-      const { error: joinError } = await this.supabaseService
-        .from('competition_participants')
-        .insert({
-          competition_id: existingMatch.id,
-          user_id: userId,
-          status: 'JOINED',
-        });
-
-      if (joinError) {
-        throw new UnauthorizedException(joinError.message);
-      }
-
-      return existingMatch;
-    }
-
-    // Create new match if no existing match found
-    const { data: newMatch, error: createError } = await this.supabaseService
-      .from('competitions')
-      .insert({
-        creator_id: userId,
-        type: createDto.type,
-        status: 'WAITING',
-        ...createDto,
-      })
-      .select()
-      .single();
-
-    if (createError) {
-      throw new UnauthorizedException(createError.message);
-    }
-
-    // Add creator as participant
-    const { error: participantError } = await this.supabaseService
-      .from('competition_participants')
-      .insert({
-        competition_id: newMatch.id,
-        user_id: userId,
-        status: 'JOINED',
-      });
-
-    if (participantError) {
-      throw new UnauthorizedException(participantError.message);
-    }
-
-    return newMatch;
-  }
-
-  async getMatches(userId: string, options: { status?: string; page: number; limit: number }) {
-    const { status, page, limit } = options;
-    const start = (page - 1) * limit;
-    const end = start + limit - 1;
-
-    let query = this.supabaseService
-      .from('competitions')
-      .select('*, competition_participants!inner(*)')
-      .eq('competition_participants.user_id', userId);
-
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range(start, end);
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
-
+  async createCompetition(userId: string, createCompetitionDto: CreateCompetitionDto) {
+    const competition = this.mockService.createMockCompetition(createCompetitionDto.type, userId);
     return {
-      matches: data,
-      total: count,
-      page,
-      limit,
+      ...competition,
+      exerciseType: createCompetitionDto.exerciseType,
+      maxParticipants: createCompetitionDto.maxParticipants || 2,
+      scores: { [userId]: 0 }
     };
   }
 
-  async getMatch(userId: string, matchId: string) {
-    const { data, error } = await this.supabaseService
-      .from('competitions')
-      .select('*, competition_participants(*)')
-      .eq('id', matchId)
-      .single();
+  async getCompetition(competitionId: string) {
+    const competition = this.mockService.getMockCompetition(competitionId);
+    if (!competition) {
+      throw new NotFoundException('Competition not found');
+    }
+    return competition;
+  }
 
-    if (error) {
-      throw new NotFoundException('Match not found');
+  async updateCompetition(competitionId: string, userId: string, updateCompetitionDto: UpdateCompetitionDto) {
+    const competition = this.mockService.getMockCompetition(competitionId);
+    if (!competition) {
+      throw new NotFoundException('Competition not found');
     }
 
-    const isParticipant = data.competition_participants.some(
-      (p) => p.user_id === userId
+    if (!competition.participants.includes(userId)) {
+      throw new BadRequestException('User is not a participant of this competition');
+    }
+
+    // 점수 업데이트
+    if (updateCompetitionDto.score !== undefined) {
+      competition.scores[userId] = updateCompetitionDto.score;
+    }
+
+    // 상태 업데이트
+    if (updateCompetitionDto.status) {
+      competition.status = updateCompetitionDto.status;
+      
+      if (updateCompetitionDto.status === CompetitionStatus.COMPLETED) {
+        competition.endTime = new Date();
+      } else if (updateCompetitionDto.status === CompetitionStatus.IN_PROGRESS) {
+        competition.startTime = new Date();
+      }
+    }
+
+    // 업데이트된 경쟁 저장
+    this.mockService['mockCompetitions'].set(competitionId, {
+      ...competition,
+      updatedAt: new Date()
+    });
+
+    return competition;
+  }
+
+  async findMatch(userId: string, matchRequestDto: MatchRequestDto) {
+    // 대기 중인 경쟁 찾기
+    const waitingCompetition = Array.from(this.mockService['mockCompetitions'].values()).find(
+      comp => 
+        comp.status === CompetitionStatus.WAITING &&
+        comp.type === matchRequestDto.type &&
+        comp.exerciseType === matchRequestDto.exerciseType &&
+        !comp.participants.includes(userId) &&
+        comp.currentParticipants < comp.maxParticipants
     );
 
-    if (!isParticipant) {
-      throw new UnauthorizedException('Not a participant of this match');
+    if (waitingCompetition) {
+      // 기존 경쟁에 참가
+      waitingCompetition.participants.push(userId);
+      waitingCompetition.currentParticipants += 1;
+      waitingCompetition.scores[userId] = 0;
+
+      if (waitingCompetition.currentParticipants === waitingCompetition.maxParticipants) {
+        waitingCompetition.status = CompetitionStatus.IN_PROGRESS;
+        waitingCompetition.startTime = new Date();
+      }
+
+      this.mockService['mockCompetitions'].set(waitingCompetition.id, waitingCompetition);
+      return waitingCompetition;
     }
 
-    return data;
+    // 새로운 경쟁 생성
+    return this.createCompetition(userId, {
+      type: matchRequestDto.type,
+      exerciseType: matchRequestDto.exerciseType,
+      maxParticipants: matchRequestDto.type === CompetitionType.ONE_VS_ONE ? 2 : 4
+    });
   }
 
-  async updateScore(userId: string, matchId: string, updateDto: UpdateScoreDto) {
-    // First check if user is a participant
-    const { data: participant, error: participantError } = await this.supabaseService
-      .from('competition_participants')
-      .select('*')
-      .eq('competition_id', matchId)
-      .eq('user_id', userId)
-      .single();
-
-    if (participantError || !participant) {
-      throw new UnauthorizedException('Not a participant of this match');
-    }
-
-    // Update score
-    const { data, error } = await this.supabaseService
-      .from('competition_participants')
-      .update({ score: updateDto.score })
-      .eq('competition_id', matchId)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
-
-    return data;
-  }
-
-  async getLeaderboard(options: { timeRange: 'day' | 'week' | 'month'; page: number; limit: number }) {
-    const { timeRange, page, limit } = options;
-    const start = (page - 1) * limit;
-    const end = start + limit - 1;
-
-    let startDate: Date;
-    const now = new Date();
-
-    switch (timeRange) {
-      case 'day':
-        startDate = new Date(now.setHours(0, 0, 0, 0));
-        break;
-      case 'week':
-        startDate = new Date(now.setDate(now.getDate() - 7));
-        break;
-      case 'month':
-        startDate = new Date(now.setMonth(now.getMonth() - 1));
-        break;
-    }
-
-    const { data, error, count } = await this.supabaseService
-      .from('competition_participants')
-      .select('*, competitions!inner(*), profiles!inner(*)', { count: 'exact' })
-      .gte('competitions.created_at', startDate.toISOString())
-      .order('score', { ascending: false })
-      .range(start, end);
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
+  async getUserCompetitions(userId: string) {
+    const competitions = Array.from(this.mockService['mockCompetitions'].values())
+      .filter(comp => comp.participants.includes(userId))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return {
-      rankings: data.map((item) => ({
-        userId: item.user_id,
-        username: item.profiles.username,
-        score: item.score,
-        matchCount: item.match_count,
-      })),
-      total: count,
-      page,
-      limit,
+      competitions,
+      total: competitions.length
     };
   }
 
-  async getStats(userId: string, options: { startDate: string; endDate: string }) {
-    const { startDate, endDate } = options;
+  async getCompetitionStats(userId: string) {
+    const competitions = Array.from(this.mockService['mockCompetitions'].values())
+      .filter(comp => 
+        comp.participants.includes(userId) && 
+        comp.status === CompetitionStatus.COMPLETED
+      );
 
-    const { data, error } = await this.supabaseService
-      .from('competition_participants')
-      .select('*, competitions!inner(*)')
-      .eq('user_id', userId)
-      .gte('competitions.created_at', startDate)
-      .lte('competitions.created_at', endDate);
+    const totalCompetitions = competitions.length;
+    let wins = 0;
+    let losses = 0;
+    let draws = 0;
 
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
+    // 타입별 통계
+    const typeStats: Record<CompetitionType, { total: number; wins: number; winRate: number }> = {
+      [CompetitionType.ONE_VS_ONE]: { total: 0, wins: 0, winRate: 0 },
+      [CompetitionType.GROUP]: { total: 0, wins: 0, winRate: 0 },
+      [CompetitionType.PAST_RECORD]: { total: 0, wins: 0, winRate: 0 }
+    };
 
-    // Calculate statistics
-    const totalMatches = data.length;
-    const wins = data.filter((match) => match.result === 'WIN').length;
-    const losses = data.filter((match) => match.result === 'LOSS').length;
-    const draws = data.filter((match) => match.result === 'DRAW').length;
-    const totalScore = data.reduce((sum, match) => sum + (match.score || 0), 0);
-    const averageScore = totalMatches > 0 ? totalScore / totalMatches : 0;
+    competitions.forEach(comp => {
+      // 타입별 통계 업데이트
+      typeStats[comp.type].total += 1;
+
+      // 승패 계산
+      const userScore = comp.scores[userId] || 0;
+      const maxScore = Math.max(...Object.values(comp.scores) as number[]);
+
+      if (userScore === maxScore) {
+        if (Object.values(comp.scores).filter(score => score === maxScore).length > 1) {
+          draws += 1;
+        } else {
+          wins += 1;
+          typeStats[comp.type].wins += 1;
+        }
+      } else {
+        losses += 1;
+      }
+    });
+
+    // 승률 계산
+    const winRate = totalCompetitions > 0 ? (wins / totalCompetitions) * 100 : 0;
+
+    // 타입별 승률 계산
+    Object.values(CompetitionType).forEach(type => {
+      const stats = typeStats[type];
+      stats.winRate = stats.total > 0 ? (stats.wins / stats.total) * 100 : 0;
+    });
 
     return {
-      totalMatches,
+      totalCompetitions,
       wins,
       losses,
       draws,
-      winRate: totalMatches > 0 ? (wins / totalMatches) * 100 : 0,
-      totalScore,
-      averageScore,
+      winRate,
+      typeStats
     };
   }
 } 

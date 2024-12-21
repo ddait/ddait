@@ -1,129 +1,113 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import { MockService } from '../common/mock/mock.service';
 import { SignUpDto, SignInDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly mockService: MockService
+  ) {}
 
   async signUp(signUpDto: SignUpDto) {
-    const { data, error } = await this.supabaseService.auth.signUp({
+    // 더미 데이터 생성
+    const mockUser = this.mockService.createMockUser({
       email: signUpDto.email,
-      password: signUpDto.password,
-      options: {
-        data: {
-          username: signUpDto.username,
-        },
-      },
+      username: signUpDto.username,
+      avatarUrl: signUpDto.avatarUrl
     });
 
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
-
-    return data;
+    return {
+      user: mockUser,
+      session: {
+        access_token: this.mockService.generateMockToken(),
+        refresh_token: this.mockService.generateMockRefreshToken()
+      }
+    };
   }
 
   async signIn(signInDto: SignInDto) {
-    const { data, error } = await this.supabaseService.auth.signInWithPassword({
-      email: signInDto.email,
-      password: signInDto.password,
-    });
+    // 더미 데이터에서 사용자 찾기
+    const mockUser = Array.from(this.mockService['mockUsers'].values()).find(
+      user => user.email === signInDto.email
+    );
 
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    if (!mockUser) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    return data;
+    return {
+      user: mockUser,
+      session: {
+        access_token: this.mockService.generateMockToken(),
+        refresh_token: this.mockService.generateMockRefreshToken()
+      }
+    };
   }
 
   async signOut(userId: string) {
-    const { error } = await this.supabaseService.auth.signOut();
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
-
+    // 실제로는 토큰 무효화 등의 작업이 필요하지만, 더미에서는 단순 응답
     return { message: 'Successfully signed out' };
   }
 
   async resetPassword(email: string) {
-    const { error } = await this.supabaseService.auth.resetPasswordForEmail(email);
+    // 더미 데이터에서 사용자 확인
+    const mockUser = Array.from(this.mockService['mockUsers'].values()).find(
+      user => user.email === email
+    );
 
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    if (!mockUser) {
+      throw new UnauthorizedException('User not found');
     }
 
     return { message: 'Password reset email sent' };
   }
 
   async updatePassword(userId: string, currentPassword: string, newPassword: string) {
-    // First get user email
-    const { data: userData, error: userError } = await this.supabaseService
-      .from('profiles')
-      .select('email')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !userData) {
+    // 더미 데이터에서 사용자 확인
+    const mockUser = this.mockService.getMockUser(userId);
+    if (!mockUser) {
       throw new UnauthorizedException('User not found');
-    }
-
-    // Verify current password
-    const { data: { user }, error: verifyError } = await this.supabaseService.auth.signInWithPassword({
-      email: userData.email,
-      password: currentPassword,
-    });
-
-    if (verifyError || user.id !== userId) {
-      throw new UnauthorizedException('Current password is incorrect');
-    }
-
-    // Update password
-    const { error } = await this.supabaseService.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
     }
 
     return { message: 'Password updated successfully' };
   }
 
   async validateToken(token: string) {
-    const { data: { user }, error } = await this.supabaseService.auth.getUser(token);
-
-    if (error || !user) {
+    // 더미 토큰 검증 (실제로는 JWT 검증 등이 필요)
+    if (!token.startsWith('mock_token_')) {
       throw new UnauthorizedException('Invalid token');
     }
 
-    return user;
+    // 첫 번째 사용자 반환
+    const mockUser = Array.from(this.mockService['mockUsers'].values())[0];
+    if (!mockUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return mockUser;
   }
 
   async getProfile(userId: string) {
-    const { data, error } = await this.supabaseService
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    // 더미 데이터에서 프로필 조회
+    const mockUser = this.mockService.getMockUser(userId);
+    if (!mockUser) {
+      throw new UnauthorizedException('User not found');
     }
 
-    return data;
+    return mockUser;
   }
 
   async refreshToken(refreshToken: string) {
-    const { data, error } = await this.supabaseService.auth.refreshSession({
-      refresh_token: refreshToken,
-    });
-
-    if (error) {
-      throw new UnauthorizedException(error.message);
+    // 더미 토큰 갱신
+    if (!refreshToken.startsWith('mock_refresh_token_')) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
-    return data;
+    return {
+      access_token: this.mockService.generateMockToken(),
+      refresh_token: this.mockService.generateMockRefreshToken()
+    };
   }
 } 
