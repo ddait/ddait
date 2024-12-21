@@ -1,45 +1,43 @@
-import { Controller, Post, Body, UseGuards, Get, Headers } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Headers, UnauthorizedException, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto, SignInDto } from './dto/auth.dto';
-import { AuthGuard } from './auth.guard';
 
-@ApiTags('인증')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: '회원가입' })
-  @ApiResponse({ status: 201, description: '회원가입 성공' })
+  @Get('profile')
+  async getProfile(@Headers('authorization') token: string) {
+    if (!token || !token.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    const tokenValue = token.split(' ')[1];
+    const user = await this.authService.validateToken(tokenValue);
+    
+    if (!user) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return this.authService.getProfile(user.id);
+  }
+
   @Post('signup')
   async signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
   }
 
-  @ApiOperation({ summary: '로그인' })
-  @ApiResponse({ status: 200, description: '로그인 성공' })
   @Post('signin')
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto);
   }
 
-  @ApiOperation({ summary: '로그아웃' })
-  @ApiResponse({ status: 200, description: '로그아웃 성공' })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @Post('signout')
-  async signOut(@Headers('authorization') token: string) {
-    const userId = token.split(' ')[1]; // 더미 데이터에서는 토큰을 userId로 사용
-    return this.authService.signOut(userId);
-  }
-
-  @ApiOperation({ summary: '프로필 조회' })
-  @ApiResponse({ status: 200, description: '프로필 조회 성공' })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @Get('profile')
-  async getProfile(@Headers('authorization') token: string) {
-    const userId = token.split(' ')[1];
-    return this.authService.getProfile(userId);
+  @Post('validate')
+  async validateToken(@Body('token') token: string) {
+    const result = await this.authService.validateToken(token);
+    if (!result.valid) {
+      throw new UnauthorizedException();
+    }
+    return result;
   }
 } 

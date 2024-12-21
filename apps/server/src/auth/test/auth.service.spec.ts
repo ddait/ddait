@@ -1,167 +1,110 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
+import { MockService } from '../../mock/mock.service';
+import { SignUpDto, SignInDto } from '../dto/auth.dto';
 import { UnauthorizedException } from '@nestjs/common';
+import { MockModule } from '../../mock/mock.module';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let configService: ConfigService;
+  let mockService: MockService;
 
-  const mockConfigService = {
-    get: jest.fn((key: string) => {
-      switch (key) {
-        case 'SUPABASE_URL':
-          return 'https://test.supabase.co';
-        case 'SUPABASE_ANON_KEY':
-          return 'test-key';
-        default:
-          return null;
-      }
-    }),
+  const mockUser = {
+    id: 'test-id',
+    email: 'test@example.com',
+    password: 'password123',
+    name: 'Test User',
+    avatarUrl: 'https://example.com/avatar.jpg',
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MockModule],
       providers: [
         AuthService,
         {
-          provide: ConfigService,
-          useValue: mockConfigService,
+          provide: MockService,
+          useValue: {
+            createMockUser: jest.fn().mockResolvedValue({
+              id: mockUser.id,
+              email: mockUser.email,
+              name: mockUser.name,
+              avatarUrl: mockUser.avatarUrl,
+            }),
+            generateMockTokens: jest.fn().mockResolvedValue({
+              accessToken: 'test-token',
+              refreshToken: 'refresh-token',
+            }),
+            validateMockToken: jest.fn().mockImplementation((token) => {
+              if (token === 'test-token') {
+                return Promise.resolve({ valid: true, id: mockUser.id });
+              }
+              return Promise.resolve({ valid: false, id: null });
+            }),
+          },
         },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    configService = module.get<ConfigService>(ConfigService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+    mockService = module.get<MockService>(MockService);
   });
 
   describe('signUp', () => {
-    it('should successfully create a new user', async () => {
-      const mockUser = {
-        email: 'test@example.com',
-        password: 'Test123!@#',
-        username: 'testuser'
+    it('should create a new user', async () => {
+      const signUpDto: SignUpDto = {
+        email: mockUser.email,
+        password: mockUser.password,
+        name: mockUser.name,
       };
 
-      jest.spyOn(service['supabase'].auth, 'signUp').mockResolvedValue({
-        data: {
-          user: {
-            id: 'test-id',
-            email: mockUser.email,
-          },
-          session: null,
-        },
-        error: null,
-      } as any);
+      const result = await service.signUp(signUpDto);
 
-      jest.spyOn(service['supabase'].from('profiles'), 'insert').mockResolvedValue({
-        data: [{ id: 'test-id' }],
-        error: null,
-      } as any);
-
-      const result = await service.signUp(
-        mockUser.email,
-        mockUser.password,
-        mockUser.username
-      );
-
-      expect(result.user.email).toBe(mockUser.email);
-    });
-
-    it('should throw UnauthorizedException on auth error', async () => {
-      const mockUser = {
-        email: 'test@example.com',
-        password: 'Test123!@#',
-        username: 'testuser'
-      };
-
-      jest.spyOn(service['supabase'].auth, 'signUp').mockResolvedValue({
-        data: null,
-        error: { message: 'Auth error' },
-      } as any);
-
-      await expect(
-        service.signUp(mockUser.email, mockUser.password, mockUser.username)
-      ).rejects.toThrow(UnauthorizedException);
+      expect(result).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+        avatarUrl: mockUser.avatarUrl,
+      });
     });
   });
 
   describe('signIn', () => {
-    it('should successfully sign in a user', async () => {
-      const mockCredentials = {
-        email: 'test@example.com',
-        password: 'Test123!@#'
+    it('should authenticate user and return token', async () => {
+      const signInDto: SignInDto = {
+        email: mockUser.email,
+        password: mockUser.password,
       };
 
-      jest.spyOn(service['supabase'].auth, 'signInWithPassword').mockResolvedValue({
-        data: {
-          user: {
-            id: 'test-id',
-            email: mockCredentials.email,
-          },
-          session: {
-            access_token: 'test-token',
-          },
+      const result = await service.signIn(signInDto);
+
+      expect(result).toEqual({
+        accessToken: 'test-token',
+        refreshToken: 'refresh-token',
+        user: {
+          id: mockUser.id,
+          email: mockUser.email,
+          name: mockUser.name,
+          avatarUrl: mockUser.avatarUrl,
         },
-        error: null,
-      } as any);
-
-      const result = await service.signIn(
-        mockCredentials.email,
-        mockCredentials.password
-      );
-
-      expect(result.user.email).toBe(mockCredentials.email);
-      expect(result.session.access_token).toBe('test-token');
-    });
-
-    it('should throw UnauthorizedException on invalid credentials', async () => {
-      const mockCredentials = {
-        email: 'test@example.com',
-        password: 'wrong-password'
-      };
-
-      jest.spyOn(service['supabase'].auth, 'signInWithPassword').mockResolvedValue({
-        data: null,
-        error: { message: 'Invalid credentials' },
-      } as any);
-
-      await expect(
-        service.signIn(mockCredentials.email, mockCredentials.password)
-      ).rejects.toThrow(UnauthorizedException);
+      });
     });
   });
 
-  describe('getUser', () => {
-    it('should return user data for valid token', async () => {
-      const mockToken = 'valid-token';
-      const mockUser = {
-        id: 'test-id',
-        email: 'test@example.com'
-      };
+  describe('validateToken', () => {
+    it('should return user data when token is valid', async () => {
+      const result = await service.validateToken('test-token');
 
-      jest.spyOn(service['supabase'].auth, 'getUser').mockResolvedValue({
-        data: { user: mockUser },
-        error: null,
-      } as any);
-
-      const result = await service.getUser(mockToken);
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual({
+        valid: true,
+        id: mockUser.id,
+      });
     });
 
-    it('should throw UnauthorizedException for invalid token', async () => {
-      const mockToken = 'invalid-token';
-
-      jest.spyOn(service['supabase'].auth, 'getUser').mockResolvedValue({
-        data: { user: null },
-        error: { message: 'Invalid token' },
-      } as any);
-
-      await expect(service.getUser(mockToken)).rejects.toThrow(UnauthorizedException);
+    it('should throw UnauthorizedException when token is invalid', async () => {
+      await expect(service.validateToken('invalid-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 }); 

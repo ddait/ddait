@@ -13,6 +13,8 @@
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/react-native": "^0.73.0",
     "turbo": "^1.10.0",
     "typescript": "^5.0.0"
   },

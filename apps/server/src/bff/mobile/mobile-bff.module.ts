@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MobileAuthController } from './controllers/auth.controller';
 import { MobileExerciseController } from './controllers/exercise.controller';
@@ -20,6 +21,10 @@ import { SocialModule } from '../../social/social.module';
     ExerciseModule,
     CompetitionModule,
     SocialModule,
+    CacheModule.register({
+      ttl: 60, // Time to live in seconds
+      max: 100, // Maximum number of items in cache
+    }),
   ],
   controllers: [
     MobileAuthController,
