@@ -1,34 +1,51 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, TouchableOpacityProps } from 'react-native';
-import { colors, typography } from '../../theme';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, StyleProp } from 'react-native';
+import { colors } from '../../theme/colors';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
-interface ButtonProps extends TouchableOpacityProps {
+export interface ButtonProps {
+  children: React.ReactNode;
+  onPress?: () => void;
   variant?: ButtonVariant;
-  label: string;
   disabled?: boolean;
-  style?: ViewStyle;
-  labelStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+  testID?: string;
 }
 
 export function Button({
+  children,
+  onPress,
   variant = 'primary',
-  label,
   disabled = false,
   style,
-  labelStyle,
-  ...props
+  textStyle,
+  testID,
 }: ButtonProps) {
+  const buttonStyles = [
+    styles.base,
+    styles[variant],
+    disabled && styles.disabled,
+    style,
+  ];
+
+  const textStyles = [
+    styles.text,
+    styles[`${variant}Text`],
+    disabled && styles.disabledText,
+    textStyle,
+  ];
+
   return (
     <TouchableOpacity
-      style={[styles.base, styles[variant], disabled && styles.disabled, style]}
+      testID={testID}
+      style={buttonStyles}
+      onPress={onPress}
       disabled={disabled}
-      {...props}
+      activeOpacity={0.7}
     >
-      <Text style={[styles.label, styles[`${variant}Label`], disabled && styles.disabledLabel, labelStyle]}>
-        {label}
-      </Text>
+      <Text style={textStyles}>{children}</Text>
     </TouchableOpacity>
   );
 }
@@ -40,36 +57,35 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
   },
   primary: {
-    backgroundColor: colors.primary.red,
+    backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: colors.primary.blue,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   ghost: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
   },
   disabled: {
     opacity: 0.5,
   },
-  label: {
-    ...typography.button,
+  text: {
+    fontSize: 16,
     fontWeight: '600',
   },
-  primaryLabel: {
-    color: colors.neutral[100],
+  primaryText: {
+    color: colors.white,
   },
-  secondaryLabel: {
-    color: colors.neutral[100],
+  secondaryText: {
+    color: colors.primary,
   },
-  ghostLabel: {
-    color: colors.neutral[600],
+  ghostText: {
+    color: colors.primary,
   },
-  disabledLabel: {
-    color: colors.neutral[400],
+  disabledText: {
+    color: colors.gray[400],
   },
 }); 
