@@ -25,6 +25,7 @@
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
+    "@supabase/supabase-js": "^2.47.10",
     "cache-manager": "5.2.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
