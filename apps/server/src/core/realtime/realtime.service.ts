@@ -2,13 +2,17 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ExerciseUpdate, CompetitionUpdate } from './types/realtime.types';
+import { ConnectionManagerService } from './connection-manager.service';
 
 @Injectable()
 export class RealtimeService implements OnModuleInit {
   private readonly logger = new Logger(RealtimeService.name);
   private supabase: SupabaseClient;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly connectionManager: ConnectionManagerService
+  ) {
     this.supabase = createClient(
       this.configService.getOrThrow('SUPABASE_URL'),
       this.configService.getOrThrow('SUPABASE_SERVICE_KEY')
@@ -26,36 +30,17 @@ export class RealtimeService implements OnModuleInit {
   }
 
   private async setupRealtimeChannels() {
-    const exerciseChannel = this.supabase
-      .channel('exercise_updates')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'exercise_sessions'
-      }, (payload) => {
-        this.handleExerciseUpdate(payload);
-      });
+    // 운동 세션 채널 설정
+    await this.connectionManager.createChannel('exercise_updates', {
+      table: 'exercise_sessions',
+      events: ['*']
+    });
 
-    const competitionChannel = this.supabase
-      .channel('competition_updates')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'competitions'
-      }, (payload) => {
-        this.handleCompetitionUpdate(payload);
-      });
-
-    await exerciseChannel.subscribe();
-    await competitionChannel.subscribe();
-  }
-
-  private handleExerciseUpdate(payload: any) {
-    this.logger.debug('Exercise update received', payload);
-  }
-
-  private handleCompetitionUpdate(payload: any) {
-    this.logger.debug('Competition update received', payload);
+    // 경쟁 채널 설정
+    await this.connectionManager.createChannel('competition_updates', {
+      table: 'competitions',
+      events: ['*']
+    });
   }
 
   async broadcastExerciseUpdate(sessionId: string, data: ExerciseUpdate) {
@@ -80,5 +65,22 @@ export class RealtimeService implements OnModuleInit {
       this.logger.error(`Failed to broadcast competition update for competition ${competitionId}`, error);
       throw error;
     }
+  }
+
+  // 채널 관리 메서드
+  async createCustomChannel(channelName: string, config: any) {
+    return this.connectionManager.createChannel(channelName, config);
+  }
+
+  async removeChannel(channelName: string) {
+    await this.connectionManager.removeChannel(channelName);
+  }
+
+  getActiveChannels() {
+    return this.connectionManager.getActiveChannels();
+  }
+
+  async cleanup() {
+    await this.connectionManager.closeAllChannels();
   }
 } 
