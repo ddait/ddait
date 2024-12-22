@@ -3,6 +3,9 @@ export const colors = {
   secondary: '#4B7BFF',
   white: '#FFFFFF',
   black: '#000000',
+  red: {
+    500: '#FF4444',
+  },
   gray: {
     100: '#F5F5F5',
     200: '#E5E5E5',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   TextInput,
@@ -6,69 +6,47 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  StyleProp,
   TextStyle,
-  TouchableOpacity,
 } from 'react-native';
-import { colors, typography, spacing } from '../../theme';
-import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../../theme/colors';
 
-interface InputProps extends TextInputProps {
-  label?: string;
+export interface InputProps extends Omit<TextInputProps, 'style'> {
   error?: string;
-  containerStyle?: ViewStyle;
-  labelStyle?: TextStyle;
-  inputStyle?: TextStyle;
-  isPassword?: boolean;
+  disabled?: boolean;
+  style?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function Input({
-  label,
   error,
+  disabled,
+  style,
   containerStyle,
-  labelStyle,
-  inputStyle,
-  isPassword = false,
   ...props
 }: InputProps) {
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
-  };
-
   return (
-    <View style={[styles.container, containerStyle]}>
-      {label && (
-        <Text style={[styles.label, labelStyle]}>
-          {label}
-        </Text>
-      )}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[
-            styles.input,
-            error && styles.inputError,
-            inputStyle,
-          ]}
-          placeholderTextColor={colors.neutral[400]}
-          secureTextEntry={isPassword && !isPasswordVisible}
-          {...props}
-        />
-        {isPassword && (
-          <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={togglePasswordVisibility}
-          >
-            <Ionicons
-              name={isPasswordVisible ? 'eye-off' : 'eye'}
-              size={24}
-              color={colors.neutral[500]}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
+    <View 
+      testID="input-container" 
+      style={[
+        styles.container,
+        error && styles.containerError,
+        containerStyle,
+      ]}
+    >
+      <TextInput
+        testID="input"
+        style={[
+          styles.input,
+          disabled && styles.inputDisabled,
+          style,
+        ]}
+        placeholderTextColor={colors.gray[400]}
+        editable={!disabled}
+        {...props}
+      />
       {error && (
-        <Text style={styles.errorText}>
+        <Text testID="input-error" style={styles.errorText}>
           {error}
         </Text>
       )}
@@ -78,40 +56,30 @@ export function Input({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: colors.gray[200],
+    borderRadius: 8,
+    backgroundColor: colors.white,
   },
-  label: {
-    ...typography.caption,
-    color: colors.neutral[700],
-    marginBottom: spacing.xs,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  containerError: {
+    borderColor: colors.red[500],
   },
   input: {
-    flex: 1,
     height: 48,
-    paddingHorizontal: spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.neutral[100],
-    color: colors.neutral[900],
-    ...typography.body,
+    paddingHorizontal: 16,
+    color: colors.gray[900],
+    fontSize: 16,
   },
-  inputError: {
-    borderColor: colors.semantic.error,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: spacing.md,
-    height: '100%',
-    justifyContent: 'center',
+  inputDisabled: {
+    backgroundColor: colors.gray[100],
+    color: colors.gray[400],
   },
   errorText: {
-    ...typography.small,
-    color: colors.semantic.error,
-    marginTop: spacing.xs,
+    marginTop: 4,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    color: colors.red[500],
+    fontSize: 12,
   },
 }); 
