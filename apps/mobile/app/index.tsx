@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card/Card';
+import { ProgressBar } from '../components/common/ProgressBar/ProgressBar';
 import { colors } from '../theme/colors';
 
 export default function App() {
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [progress, setProgress] = useState(0);
 
   const validateInput = (value: string) => {
     setText(value);
@@ -19,9 +21,52 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((prev) => (prev >= 100 ? 0 : prev + 10));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
+        {/* ProgressBar Examples */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Basic ProgressBar</Text>
+          <ProgressBar value={progress} />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>ProgressBar Sizes</Text>
+          <View style={styles.progressGroup}>
+            <ProgressBar size="small" value={progress} />
+            <ProgressBar size="medium" value={progress} />
+            <ProgressBar size="large" value={progress} />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Custom Colors</Text>
+          <View style={styles.progressGroup}>
+            <ProgressBar 
+              value={progress} 
+              color={colors.success[500]}
+              trackColor={colors.success[100]}
+            />
+            <ProgressBar 
+              value={progress} 
+              color={colors.error[500]}
+              trackColor={colors.error[100]}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Indeterminate Progress</Text>
+          <ProgressBar variant="indeterminate" />
+        </View>
+
         {/* Card Examples */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Basic Card</Text>
@@ -262,5 +307,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
+  },
+  progressGroup: {
+    gap: 16,
   },
 }); 
