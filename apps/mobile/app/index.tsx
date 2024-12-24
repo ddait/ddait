@@ -6,6 +6,7 @@ import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card/Card';
 import { ProgressBar } from '../components/common/ProgressBar/ProgressBar';
 import { colors } from '../theme/colors';
+import { ExerciseTimer } from '../components/exercise/ExerciseTimer/index';
 
 export default function App() {
   const [text, setText] = useState('');
@@ -242,6 +243,43 @@ export default function App() {
             </Button>
           </View>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Exercise Timer Examples</Text>
+          <View style={styles.timerExamples}>
+            <Text style={styles.label}>Basic Timer:</Text>
+            <ExerciseTimer
+              onTimeUpdate={(time) => console.log('Time updated:', time)}
+            />
+
+            <Text style={styles.label}>Timer with Target (5 seconds):</Text>
+            <ExerciseTimer
+              onTimeUpdate={(time) => console.log('Time updated:', time)}
+              targetTime={5}
+              onComplete={() => console.log('Timer completed!')}
+            />
+
+            <Text style={styles.label}>24-hour Format Timer:</Text>
+            <ExerciseTimer
+              onTimeUpdate={(time) => console.log('Time updated:', time)}
+              format="24h"
+              initialTime={3661} // 1 hour, 1 minute, 1 second
+            />
+
+            <Text style={styles.label}>Auto-start Timer:</Text>
+            <ExerciseTimer
+              onTimeUpdate={(time) => console.log('Time updated:', time)}
+              autoStart
+            />
+
+            <Text style={styles.label}>Timer without Controls:</Text>
+            <ExerciseTimer
+              onTimeUpdate={(time) => console.log('Time updated:', time)}
+              showControls={false}
+              autoStart
+            />
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -310,5 +348,14 @@ const styles = StyleSheet.create({
   },
   progressGroup: {
     gap: 16,
+  },
+  timerExamples: {
+    gap: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.gray[700],
+    marginTop: 10,
   },
 }); 
