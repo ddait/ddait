@@ -1,48 +1,40 @@
 import React from 'react';
-import { View, ViewStyle, StyleSheet, StyleProp, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, ViewStyle, StyleProp } from 'react-native';
+import { colors } from '../../../theme/colors';
 
 export type CardVariant = 'elevated' | 'outlined' | 'filled';
 
-interface CardHeaderProps {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
-
-interface CardContentProps {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
-
-interface CardFooterProps {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
-
 export interface CardProps {
-  children: React.ReactNode;
   variant?: CardVariant;
   style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
   onPress?: () => void;
-  testID?: string;
 }
 
-const CardHeader: React.FC<CardHeaderProps> = ({ children, style }) => (
-  <View style={[styles.header, style]}>{children}</View>
-);
-
-const CardContent: React.FC<CardContentProps> = ({ children, style }) => (
-  <View style={[styles.content, style]}>{children}</View>
-);
-
-const CardFooter: React.FC<CardFooterProps> = ({ children, style }) => (
-  <View style={[styles.footer, style]}>{children}</View>
-);
-
-export const Card: React.FC<CardProps> & {
+interface CardComponent extends React.FC<CardProps> {
   Header: typeof CardHeader;
   Content: typeof CardContent;
   Footer: typeof CardFooter;
-} = ({ children, variant = 'elevated', style, onPress, testID }) => {
+}
+
+interface CardSubComponentProps {
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+const CardHeader: React.FC<CardSubComponentProps> = ({ children, style }) => (
+  <View style={[styles.header, style]}>{children}</View>
+);
+
+const CardContent: React.FC<CardSubComponentProps> = ({ children, style }) => (
+  <View style={[styles.content, style]}>{children}</View>
+);
+
+const CardFooter: React.FC<CardSubComponentProps> = ({ children, style }) => (
+  <View style={[styles.footer, style]}>{children}</View>
+);
+
+export const Card: CardComponent = ({ variant = 'elevated', style, children, onPress }) => {
   const cardStyle = [
     styles.card,
     variant === 'elevated' && styles.elevated,
@@ -51,13 +43,15 @@ export const Card: React.FC<CardProps> & {
     style,
   ];
 
-  const CardContainer = onPress ? Pressable : View;
+  if (onPress) {
+    return (
+      <Pressable style={cardStyle} onPress={onPress}>
+        {children}
+      </Pressable>
+    );
+  }
 
-  return (
-    <CardContainer style={cardStyle} onPress={onPress} testID={testID}>
-      {children}
-    </CardContainer>
-  );
+  return <View style={cardStyle}>{children}</View>;
 };
 
 Card.Header = CardHeader;
@@ -67,35 +61,34 @@ Card.Footer = CardFooter;
 const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
+    backgroundColor: colors.white,
     overflow: 'hidden',
   },
   elevated: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    elevation: 2,
+    shadowColor: colors.gray[900],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 4,
   },
   outlined: {
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.gray[200],
   },
   filled: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.gray[100],
   },
   header: {
     padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e0e0e0',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
   },
   content: {
     padding: 16,
   },
   footer: {
     padding: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e0e0e0',
+    borderTopWidth: 1,
+    borderTopColor: colors.gray[200],
   },
 }); 

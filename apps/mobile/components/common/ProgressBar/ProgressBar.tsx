@@ -1,142 +1,124 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, Animated, ViewStyle, StyleProp } from 'react-native';
 import { colors } from '../../../theme/colors';
 
 export type ProgressBarSize = 'small' | 'medium' | 'large';
 export type ProgressBarVariant = 'determinate' | 'indeterminate';
 
-export interface ProgressBarProps extends React.ComponentProps<typeof View> {
+export interface ProgressBarProps {
+  /**
+   * The value of the progress indicator (0-100)
+   */
   value?: number;
-  variant?: ProgressBarVariant;
+  
+  /**
+   * The size of the progress bar
+   * @default 'medium'
+   */
   size?: ProgressBarSize;
+  
+  /**
+   * The variant of the progress bar
+   * @default 'determinate'
+   */
+  variant?: ProgressBarVariant;
+  
+  /**
+   * The color of the progress indicator
+   */
   color?: string;
+  
+  /**
+   * The color of the progress track
+   */
   trackColor?: string;
-  animated?: boolean;
-  label?: string;
+  
+  /**
+   * Additional styles for the container
+   */
   style?: StyleProp<ViewStyle>;
 }
 
-const SIZES = {
-  small: 4,
-  medium: 8,
-  large: 12,
-} as const;
-
-export const ProgressBar = React.forwardRef<View, ProgressBarProps>(({
+export function ProgressBar({
   value = 0,
-  variant = 'determinate',
   size = 'medium',
-  color = colors.primary,
+  variant = 'determinate',
+  color = colors.primary[500],
   trackColor = colors.gray[200],
   style,
-  animated = true,
-  label,
-  ...props
-}, ref) => {
-  const animatedWidth = useRef(new Animated.Value(0)).current;
-  const indeterminateAnim = useRef(new Animated.Value(0)).current;
+}: ProgressBarProps) {
+  const animation = useRef(new Animated.Value(0)).current;
+  const indeterminateAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (variant === 'determinate' && animated) {
-      Animated.timing(animatedWidth, {
+    if (variant === 'determinate') {
+      Animated.timing(animation, {
         toValue: value,
         duration: 300,
         useNativeDriver: false,
       }).start();
-    }
-  }, [value, variant, animated]);
-
-  useEffect(() => {
-    if (variant === 'indeterminate') {
+    } else {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(indeterminateAnim, {
+          Animated.timing(indeterminateAnimation, {
             toValue: 1,
-            duration: 1000,
+            duration: 1500,
             useNativeDriver: false,
           }),
-          Animated.timing(indeterminateAnim, {
+          Animated.timing(indeterminateAnimation, {
             toValue: 0,
-            duration: 1000,
+            duration: 0,
             useNativeDriver: false,
           }),
         ])
       ).start();
     }
-  }, [variant]);
+  }, [value, variant]);
 
-  const progressBarHeight = SIZES[size];
+  const height = {
+    small: 2,
+    medium: 4,
+    large: 8,
+  }[size];
 
-  const containerStyle = [
-    styles.container,
-    {
-      height: progressBarHeight,
-      backgroundColor: trackColor,
-    },
-    style,
-  ];
-
-  const getProgressWidth = (): any => {
-    if (variant === 'determinate') {
-      if (animated) {
-        return animatedWidth.interpolate({
-          inputRange: [0, 100],
-          outputRange: ['0%', '100%'],
-        });
-      }
-      return `${value}%`;
-    }
-    return '30%';
-  };
-
-  const getTransform = () => {
-    if (variant === 'indeterminate') {
-      return [{
-        translateX: indeterminateAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['-100%', '400%'],
-        }),
-      }];
-    }
-    return undefined;
-  };
-
-  const fillStyle = {
-    ...styles.fill,
-    backgroundColor: color,
-    width: getProgressWidth(),
-    transform: getTransform(),
-  };
+  const progressWidth = variant === 'determinate'
+    ? animation.interpolate({
+        inputRange: [0, 100],
+        outputRange: ['0%', '100%'],
+      })
+    : indeterminateAnimation.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: ['0%', '50%', '100%'],
+      });
 
   return (
     <View
-      {...props}
-      ref={ref}
-      style={containerStyle}
-      testID="progress-bar"
-      accessibilityRole="progressbar"
-      accessibilityLabel={label}
-      accessibilityValue={{
-        now: variant === 'determinate' ? value : 0,
-        min: 0,
-        max: 100,
-      }}
+      style={[
+        styles.container,
+        { height },
+        { backgroundColor: trackColor },
+        style,
+      ]}
     >
-      <Animated.View style={fillStyle} testID="progress-bar-fill" />
+      <Animated.View
+        style={[
+          styles.progress,
+          { backgroundColor: color },
+          { width: progressWidth },
+        ]}
+      />
     </View>
   );
-});
-
-ProgressBar.displayName = 'ProgressBar';
+}
 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderRadius: 4,
+    borderRadius: 999,
     overflow: 'hidden',
   },
-  fill: {
+  progress: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 999,
   },
 }); 

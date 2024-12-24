@@ -1,17 +1,10 @@
 import { Stack } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <Stack>
-        <Stack.Screen
-          name="index"
-          options={{
-            title: 'Button Examples',
-          }}
-        />
-      </Stack>
-    </SafeAreaProvider>
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
 }
