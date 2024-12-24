@@ -1,75 +1,61 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
+import { Tabs } from 'expo-router';
+import { useColorScheme } from '../../hooks/useColorScheme';
+import { Colors } from '../../constants/Colors';
+import { FontAwesome } from '@expo/vector-icons';
 
-// Screens
-import ButtonScreen from './buttons';
-import InputScreen from './inputs';
-import CardScreen from './cards';
-import ProgressScreen from './progress';
-import ExerciseScreen from './exercise';
-
-const Tab = createBottomTabNavigator();
+function TabBarIcon(props: {
+  name: React.ComponentProps<typeof FontAwesome>['name'];
+  color: string;
+}) {
+  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+}
 
 export default function TabLayout() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
   return (
-    <Tab.Navigator
+    <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary[500],
-        tabBarInactiveTintColor: colors.gray[400],
+        tabBarActiveTintColor: colors.tint,
         headerShown: true,
-      }}
-    >
-      <Tab.Screen
-        name="buttons"
-        component={ButtonScreen}
+        tabBarStyle: {
+          backgroundColor: colors.background,
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
+      }}>
+      <Tabs.Screen
+        name="index"
         options={{
-          title: 'Buttons',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="radio-button-on" size={size} color={color} />
-          ),
+          title: 'Home',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
-      <Tab.Screen
-        name="inputs"
-        component={InputScreen}
+      <Tabs.Screen
+        name="workout"
         options={{
-          title: 'Inputs',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="create" size={size} color={color} />
-          ),
+          title: 'Workout',
+          tabBarIcon: ({ color }) => <TabBarIcon name="heartbeat" color={color} />,
+          headerTitle: 'Select Workout',
         }}
       />
-      <Tab.Screen
-        name="cards"
-        component={CardScreen}
+      <Tabs.Screen
+        name="competition"
         options={{
-          title: 'Cards',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card" size={size} color={color} />
-          ),
+          title: 'Competition',
+          tabBarIcon: ({ color }) => <TabBarIcon name="trophy" color={color} />,
         }}
       />
-      <Tab.Screen
-        name="progress"
-        component={ProgressScreen}
+      <Tabs.Screen
+        name="profile"
         options={{
-          title: 'Progress',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bar-chart" size={size} color={color} />
-          ),
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
-      <Tab.Screen
-        name="exercise"
-        component={ExerciseScreen}
-        options={{
-          title: 'Exercise',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="timer" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+    </Tabs>
   );
 }

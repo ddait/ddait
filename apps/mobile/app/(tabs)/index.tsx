@@ -1,99 +1,64 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '../../components/common/Button';
-import { colors } from '../../theme/colors';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { ExerciseCard } from '../../components/exercise/ExerciseCard';
+import { Colors } from '../../constants/Colors';
+import { useColorScheme } from '../../hooks/useColorScheme';
+import type {
+  ActiveExerciseCardProps,
+  PausedExerciseCardProps,
+  CompletedExerciseCardProps,
+} from '../../components/exercise/ExerciseCard/types';
 
-export default function ButtonScreen() {
+export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  const handlePause = () => console.log('Pause');
+  const handleResume = () => console.log('Resume');
+  const handleStop = () => console.log('Stop');
+
+  const activeExercise: ActiveExerciseCardProps = {
+    title: "Morning Run",
+    type: "running",
+    duration: 1800,
+    calories: 250,
+    status: "active",
+    progress: 75,
+    onPause: handlePause,
+    onStop: handleStop,
+  };
+
+  const pausedExercise: PausedExerciseCardProps = {
+    title: "Evening Cycling",
+    type: "cycling",
+    duration: 3600,
+    calories: 450,
+    status: "paused",
+    progress: 50,
+    onResume: handleResume,
+    onStop: handleStop,
+  };
+
+  const completedExercise: CompletedExerciseCardProps = {
+    title: "Swimming",
+    type: "swimming",
+    duration: 2700,
+    calories: 350,
+    status: "completed",
+    progress: 100,
+    variant: "compact",
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Buttons</Text>
-          <Button onPress={() => console.log('Pressed')}>
-            Default Button
-          </Button>
-        </View>
-
-        <View style={styles.section}>
-          <Button 
-            variant="primary"
-            style={styles.fullWidth}
-            onPress={() => console.log('Primary Full Width')}
-          >
-            Primary Full Width
-          </Button>
-        </View>
-
-        <View style={styles.section}>
-          <Button 
-            variant="secondary"
-            style={styles.fullWidth}
-            onPress={() => console.log('Secondary Full Width')}
-          >
-            Secondary Full Width
-          </Button>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <Button 
-              variant="primary"
-              style={styles.halfWidth}
-              onPress={() => console.log('Half Width 1')}
-            >
-              Half Width
-            </Button>
-            <Button 
-              variant="secondary"
-              style={styles.halfWidth}
-              onPress={() => console.log('Half Width 2')}
-            >
-              Half Width
-            </Button>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Button 
-            variant="primary"
-            style={[styles.fullWidth, styles.customHeight]}
-            onPress={() => console.log('Custom Height')}
-          >
-            Custom Height
-          </Button>
-        </View>
-
-        <View style={styles.section}>
-          <Button 
-            variant="primary"
-            style={[styles.fullWidth, styles.roundedButton]}
-            onPress={() => console.log('Rounded Button')}
-          >
-            Rounded Button
-          </Button>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <Button 
-              variant="primary"
-              style={styles.iconButton}
-              onPress={() => console.log('Icon Button 1')}
-            >
-              +
-            </Button>
-            <Button 
-              variant="secondary"
-              style={styles.iconButton}
-              onPress={() => console.log('Icon Button 2')}
-            >
-              -
-            </Button>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.content}>
+        <ExerciseCard name={''} sets={[]} {...activeExercise} />
+        <View style={styles.spacer} />
+        <ExerciseCard name={''} sets={[]} {...pausedExercise} />
+        <View style={styles.spacer} />
+        <ExerciseCard name={''} sets={[]} {...completedExercise} />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -101,39 +66,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
+  content: {
     padding: 16,
   },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-    color: colors.gray[800],
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  halfWidth: {
-    flex: 1,
-  },
-  customHeight: {
-    height: 60,
-  },
-  roundedButton: {
-    borderRadius: 25,
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  spacer: {
+    height: 16,
   },
 });
