@@ -10,7 +10,7 @@ exports[`renders correctly 1`] = `
       },
       {},
       {
-        "color": "#000000",
+        "color": "#212529",
       },
       undefined,
       false,
