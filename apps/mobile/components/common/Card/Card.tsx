@@ -9,6 +9,7 @@ export interface CardProps {
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   onPress?: () => void;
+  testID?: string;
 }
 
 interface CardComponent extends React.FC<CardProps> {
@@ -20,21 +21,22 @@ interface CardComponent extends React.FC<CardProps> {
 interface CardSubComponentProps {
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-const CardHeader: React.FC<CardSubComponentProps> = ({ children, style }) => (
-  <View style={[styles.header, style]}>{children}</View>
+const CardHeader: React.FC<CardSubComponentProps> = ({ children, style, testID }) => (
+  <View style={[styles.header, style]} testID={testID}>{children}</View>
 );
 
-const CardContent: React.FC<CardSubComponentProps> = ({ children, style }) => (
-  <View style={[styles.content, style]}>{children}</View>
+const CardContent: React.FC<CardSubComponentProps> = ({ children, style, testID }) => (
+  <View style={[styles.content, style]} testID={testID}>{children}</View>
 );
 
-const CardFooter: React.FC<CardSubComponentProps> = ({ children, style }) => (
-  <View style={[styles.footer, style]}>{children}</View>
+const CardFooter: React.FC<CardSubComponentProps> = ({ children, style, testID }) => (
+  <View style={[styles.footer, style]} testID={testID}>{children}</View>
 );
 
-export const Card: CardComponent = ({ variant = 'elevated', style, children, onPress }) => {
+export const Card: CardComponent = ({ variant = 'elevated', style, children, onPress, testID = 'test-card' }) => {
   const cardStyle = [
     styles.card,
     variant === 'elevated' && styles.elevated,
@@ -45,13 +47,13 @@ export const Card: CardComponent = ({ variant = 'elevated', style, children, onP
 
   if (onPress) {
     return (
-      <Pressable style={cardStyle} onPress={onPress}>
+      <Pressable style={cardStyle} onPress={onPress} testID={testID}>
         {children}
       </Pressable>
     );
   }
 
-  return <View style={cardStyle}>{children}</View>;
+  return <View style={cardStyle} testID={testID}>{children}</View>;
 };
 
 Card.Header = CardHeader;
@@ -61,12 +63,12 @@ Card.Footer = CardFooter;
 const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     overflow: 'hidden',
   },
   elevated: {
     elevation: 2,
-    shadowColor: colors.gray[900],
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TextInputProps, ViewStyle, StyleProp } from 'react-native';
 import { colors } from '../../theme/colors';
 
 export interface InputProps extends TextInputProps {
@@ -8,6 +8,7 @@ export interface InputProps extends TextInputProps {
   label?: string;
   helperText?: string;
   required?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function Input({
@@ -17,35 +18,46 @@ export function Input({
   helperText,
   required,
   style,
+  testID,
+  containerStyle,
   ...props
 }: InputProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.wrapper]} testID={`${testID || 'input'}-wrapper`}>
       {label && (
         <Text style={styles.label}>
           {label}
           {required && <Text style={styles.required}> *</Text>}
         </Text>
       )}
-      <TextInput
+      <View 
         style={[
-          styles.input,
-          error && styles.inputError,
-          disabled && styles.inputDisabled,
-          style,
-        ]}
-        placeholderTextColor={colors.gray[400]}
-        editable={!disabled}
-        {...props}
-      />
-      {helperText && <Text style={styles.helperText}>{helperText}</Text>}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+          styles.inputContainer,
+          error && { borderColor: '#FF4444' },
+          containerStyle,
+        ]} 
+        testID={`${testID || 'input'}-container`}
+      >
+        <TextInput
+          style={[
+            styles.input,
+            disabled && styles.inputDisabled,
+            style,
+          ]}
+          testID={testID || 'input'}
+          placeholderTextColor={colors.gray[400]}
+          editable={!disabled}
+          {...props}
+        />
+      </View>
+      {helperText && <Text style={styles.helperText} testID={`${testID || 'input'}-helper`}>{helperText}</Text>}
+      {error && <Text style={styles.errorText} testID={`${testID || 'input'}-error`}>{error}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     width: '100%',
   },
   label: {
@@ -55,21 +67,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   required: {
-    color: colors.error[500],
+    color: '#FF4444',
   },
-  input: {
+  inputContainer: {
     width: '100%',
-    height: 44,
-    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.gray[300],
     borderRadius: 8,
-    backgroundColor: colors.white,
-    color: colors.gray[900],
-    fontSize: 16,
+    backgroundColor: colors.background,
   },
-  inputError: {
-    borderColor: colors.error[500],
+  input: {
+    height: 44,
+    paddingHorizontal: 12,
+    color: colors.text,
+    fontSize: 16,
   },
   inputDisabled: {
     backgroundColor: colors.gray[100],
@@ -82,7 +93,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    color: colors.error[500],
+    color: '#FF4444',
     marginTop: 4,
   },
 }); 

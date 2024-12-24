@@ -37,20 +37,44 @@ export interface ProgressBarProps {
    * Additional styles for the container
    */
   style?: StyleProp<ViewStyle>;
+
+  /**
+   * Test ID for testing
+   */
+  testID?: string;
+
+  /**
+   * Whether to animate the progress bar
+   * @default true
+   */
+  animated?: boolean;
+
+  /**
+   * Accessibility label for the progress bar
+   */
+  label?: string;
 }
 
 export function ProgressBar({
   value = 0,
   size = 'medium',
   variant = 'determinate',
-  color = colors.primary[500],
+  color = colors.primary,
   trackColor = colors.gray[200],
   style,
+  testID,
+  animated = true,
+  label,
 }: ProgressBarProps) {
   const animation = useRef(new Animated.Value(0)).current;
   const indeterminateAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (!animated) {
+      animation.setValue(value);
+      return;
+    }
+
     if (variant === 'determinate') {
       Animated.timing(animation, {
         toValue: value,
@@ -73,7 +97,7 @@ export function ProgressBar({
         ])
       ).start();
     }
-  }, [value, variant]);
+  }, [value, variant, animated]);
 
   const height = {
     small: 2,
@@ -93,18 +117,29 @@ export function ProgressBar({
 
   return (
     <View
+      testID={testID || 'progress-bar'}
       style={[
         styles.container,
         { height },
         { backgroundColor: trackColor },
         style,
       ]}
+      accessibilityRole="progressbar"
+      accessibilityLabel={label}
+      accessibilityValue={value ? {
+        now: value,
+        min: 0,
+        max: 100
+      } : undefined}
     >
       <Animated.View
+        testID="progress-bar-fill"
         style={[
           styles.progress,
-          { backgroundColor: color },
-          { width: progressWidth },
+          {
+            backgroundColor: color,
+            width: !animated ? `${value}%` : progressWidth,
+          } as any,
         ]}
       />
     </View>
