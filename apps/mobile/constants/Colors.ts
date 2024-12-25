@@ -3,6 +3,9 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
+const tintColorLight = '#2f95dc';
+const tintColorDark = '#fff';
+
 export const Colors = {
   light: {
     // Primary Colors
@@ -16,72 +19,74 @@ export const Colors = {
     secondaryTeal: '#2DC8C8',
 
     // Neutral Colors
-    text: '#212529',
-    background: '#FFFFFF',
+    text: '#000',
+    background: '#fff',
+    cardBackground: '#fff',
     white: '#FFFFFF',
     black: '#000000',
     gray: {
-      100: '#F8F9FA',
-      200: '#E9ECEF',
-      300: '#DEE2E6',
-      400: '#CED4DA',
-      500: '#ADB5BD',
-      600: '#6C757D',
-      700: '#495057',
-      800: '#343A40',
-      900: '#212529',
+      100: '#F7F7F7',
+      200: '#E5E5E5',
+      300: '#D4D4D4',
+      400: '#A3A3A3',
+      500: '#737373',
+      600: '#525252',
+      700: '#404040',
+      800: '#262626',
+      900: '#171717',
     },
 
     // Semantic Colors
     success: '#34C759',
-    error: '#FF4B4B',
-    warning: '#FF9F2D',
-    info: '#4B7BFF',
+    warning: '#FF9500',
+    error: '#FF3B30',
+    info: '#007AFF',
 
     // System Colors
-    tint: '#FF4B4B',
-    tabIconDefault: '#CCCCCC',
-    tabIconSelected: '#FF4B4B',
+    tint: tintColorLight,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorLight,
     icon: '#000000',
   },
   dark: {
     // Primary Colors
-    primary: '#FF6B6B',
-    primaryBlue: '#6B8FFF',
-    primaryGreen: '#4CD964',
+    primary: '#FF4B4B',
+    primaryBlue: '#4B7BFF',
+    primaryGreen: '#34C759',
 
     // Secondary Colors
-    secondaryPurple: '#B57BE0',
-    secondaryOrange: '#FFB74D',
-    secondaryTeal: '#4DD0D0',
+    secondaryPurple: '#9B51E0',
+    secondaryOrange: '#FF9F2D',
+    secondaryTeal: '#2DC8C8',
 
     // Neutral Colors
-    text: '#F8F9FA',
-    background: '#000000',
+    text: '#fff',
+    background: '#000',
+    cardBackground: '#1c1c1e',
     white: '#FFFFFF',
     black: '#000000',
     gray: {
-      900: '#F8F9FA',
-      800: '#E9ECEF',
-      700: '#DEE2E6',
-      600: '#CED4DA',
-      500: '#ADB5BD',
-      400: '#868E96',
-      300: '#3D4348',
-      200: '#2A2F34',
-      100: '#212529',
+      100: '#171717',
+      200: '#262626',
+      300: '#404040',
+      400: '#525252',
+      500: '#737373',
+      600: '#A3A3A3',
+      700: '#D4D4D4',
+      800: '#E5E5E5',
+      900: '#F7F7F7',
     },
 
     // Semantic Colors
-    success: '#4CD964',
-    error: '#FF6B6B',
-    warning: '#FFB74D',
-    info: '#6B8FFF',
+    success: '#34C759',
+    warning: '#FF9500',
+    error: '#FF3B30',
+    info: '#007AFF',
 
     // System Colors
-    tint: '#FF6B6B',
-    tabIconDefault: '#666666',
-    tabIconSelected: '#FF6B6B',
+    tint: tintColorDark,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorDark,
     icon: '#FFFFFF',
   },
 } as const;

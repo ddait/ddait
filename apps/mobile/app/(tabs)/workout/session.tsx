@@ -5,7 +5,7 @@ import { Colors } from '../../../constants/Colors';
 import { useColorScheme } from '../../../hooks/useColorScheme';
 import { ExerciseTimer } from '../../../components/exercise/ExerciseTimer/ExerciseTimer';
 import { TimeFormat } from '../../../components/exercise/ExerciseTimer/types';
-import { Button } from '../../../components/common/Button/Button';
+import { Button } from '../../../components/common/Button';
 
 export default function WorkoutSessionScreen() {
   const { type } = useLocalSearchParams<{ type: string }>();
@@ -46,9 +46,8 @@ export default function WorkoutSessionScreen() {
           hapticFeedback={true}
           style={styles.timer}
           initialTime={0}
-        />
+           />
         <Button
-          variant="primary"
           onPress={handleComplete}
           style={styles.completeButton}
         >

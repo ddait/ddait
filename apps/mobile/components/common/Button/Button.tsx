@@ -1,121 +1,51 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { ButtonProps } from './types';
 import { Colors } from '../../../constants/Colors';
-
-export interface ButtonProps {
-  children: React.ReactNode;
-  onPress?: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'small' | 'medium' | 'large';
-  disabled?: boolean;
-  loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
-  testID?: string;
-}
+import { useColorScheme } from '../../../hooks/useColorScheme';
 
 export function Button({
-  children,
+  title,
   onPress,
-  variant = 'primary',
+  type = 'primary',
   size = 'medium',
   disabled = false,
   loading = false,
+  testID,
   style,
   textStyle,
-  testID,
 }: ButtonProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-
-  const getBackgroundColor = () => {
-    if (disabled) return colors.gray[300];
-    switch (variant) {
-      case 'primary':
-        return colors.primary;
-      case 'secondary':
-        return colors.primaryBlue;
-      case 'ghost':
-        return 'transparent';
-      default:
-        return colors.primary;
-    }
-  };
-
-  const getBorderColor = () => {
-    if (disabled) return colors.gray[300];
-    switch (variant) {
-      case 'ghost':
-        return colors.gray[400];
-      default:
-        return 'transparent';
-    }
-  };
-
-  const getTextColor = () => {
-    if (disabled) return colors.gray[500];
-    switch (variant) {
-      case 'ghost':
-        return colors.text;
-      default:
-        return colors.white;
-    }
-  };
-
-  const getSizeStyle = (): ViewStyle => {
-    switch (size) {
-      case 'small':
-        return { paddingVertical: 8, paddingHorizontal: 16 };
-      case 'large':
-        return { paddingVertical: 16, paddingHorizontal: 32 };
-      default:
-        return { paddingVertical: 12, paddingHorizontal: 24 };
-    }
-  };
-
-  const getTextSize = (): TextStyle => {
-    switch (size) {
-      case 'small':
-        return { fontSize: 14 };
-      case 'large':
-        return { fontSize: 18 };
-      default:
-        return { fontSize: 16 };
-    }
-  };
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
+      testID={testID}
       style={[
         styles.button,
-        {
-          backgroundColor: getBackgroundColor(),
-          borderColor: getBorderColor(),
-        },
-        getSizeStyle(),
+        styles[type],
+        styles[size],
+        disabled && styles.disabled,
         style,
       ]}
-      activeOpacity={0.7}
-      testID={testID}
     >
       {loading ? (
-        <ActivityIndicator 
-          color={getTextColor()} 
+        <ActivityIndicator
+          color={colors.text}
           testID="loading-indicator"
         />
       ) : (
         <Text
           style={[
             styles.text,
-            getTextSize(),
-            { color: getTextColor() },
+            styles[`${type}Text`],
+            disabled && styles.disabledText,
             textStyle,
           ]}
         >
-          {children}
+          {title}
         </Text>
       )}
     </TouchableOpacity>
@@ -127,10 +57,43 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    paddingHorizontal: 16,
+  },
+  primary: {
+    backgroundColor: Colors.light.primaryBlue,
+  },
+  secondary: {
+    backgroundColor: Colors.light.secondaryTeal,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  small: {
+    height: 32,
+  },
+  medium: {
+    height: 40,
+  },
+  large: {
+    height: 48,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   text: {
+    fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+  },
+  primaryText: {
+    color: '#FFFFFF',
+  },
+  secondaryText: {
+    color: '#000000',
+  },
+  ghostText: {
+    color: Colors.light.primaryBlue,
+  },
+  disabledText: {
+    color: '#666666',
   },
 }); 
