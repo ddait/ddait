@@ -2,6 +2,18 @@ import { Stack } from 'expo-router';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { Colors } from '../constants/Colors';
 
+// Define available routes
+const ALLOWED_ROUTES = [
+  '/',
+  '/workout',
+  '/competition',
+  '/social',
+  '/profile',
+  '/workout/setup',
+  '/workout/session',
+  '/workout/complete',
+];
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -13,14 +25,12 @@ export default function RootLayout() {
           backgroundColor: colors.background,
         },
         headerTintColor: colors.text,
-        headerBackTitle: 'Back',
       }}
+      initialRouteName="(tabs)"
     >
       <Stack.Screen
         name="(tabs)"
-        options={{
-          headerShown: false,
-        }}
+        options={{ headerShown: false }}
       />
     </Stack>
   );

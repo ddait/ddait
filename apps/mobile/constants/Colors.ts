@@ -19,6 +19,7 @@ export const Colors = {
     text: '#212529',
     background: '#FFFFFF',
     white: '#FFFFFF',
+    black: '#000000',
     gray: {
       100: '#F8F9FA',
       200: '#E9ECEF',
@@ -58,6 +59,7 @@ export const Colors = {
     text: '#F8F9FA',
     background: '#000000',
     white: '#FFFFFF',
+    black: '#000000',
     gray: {
       900: '#F8F9FA',
       800: '#E9ECEF',
