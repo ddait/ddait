@@ -1,53 +1,37 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, ViewStyle, Animated } from 'react-native';
-import { colors } from '../../theme';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
-interface ProgressBarProps {
-  progress: number; // 0 to 100
-  height?: number;
-  style?: ViewStyle;
-  animated?: boolean;
-  duration?: number;
+export interface ProgressBarProps {
+  progress: number;
+  testID?: string;
+  onProgressUpdate?: (progress: number) => void;
 }
 
-export function ProgressBar({
-  progress,
-  height = 8,
-  style,
-  animated = true,
-  duration = 300,
-}: ProgressBarProps) {
-  const animatedWidth = new Animated.Value(0);
-
-  useEffect(() => {
-    if (animated) {
-      Animated.timing(animatedWidth, {
-        toValue: progress,
-        duration,
-        useNativeDriver: false,
-      }).start();
-    } else {
-      animatedWidth.setValue(progress);
-    }
-  }, [progress, animated, duration]);
-
-  const width = animatedWidth.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  });
+export function ProgressBar({ progress, testID, onProgressUpdate }: ProgressBarProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <View
-      style={[
-        styles.container,
-        { height },
-        style,
-      ]}
+      testID={testID}
+      style={[styles.container, { backgroundColor: colors.background }]}
+      onTouchMove={(e) => {
+        if (onProgressUpdate) {
+          const { locationX, pageX } = e.nativeEvent;
+          const progress = Math.min(Math.max((locationX / pageX) * 100, 0), 100);
+          onProgressUpdate(progress);
+        }
+      }}
     >
-      <Animated.View
+      <View
         style={[
-          styles.fill,
-          { width },
+          styles.progress,
+          {
+            width: `${Math.min(Math.max(progress, 0), 100)}%`,
+            backgroundColor: colors.primary,
+          },
         ]}
       />
     </View>
@@ -56,14 +40,11 @@ export function ProgressBar({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    backgroundColor: colors.neutral[200],
+    height: 8,
     borderRadius: 4,
     overflow: 'hidden',
   },
-  fill: {
+  progress: {
     height: '100%',
-    backgroundColor: colors.primary.blue,
-    borderRadius: 4,
   },
 }); 

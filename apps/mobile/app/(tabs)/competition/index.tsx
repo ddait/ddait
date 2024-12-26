@@ -5,14 +5,17 @@ import { useRouter } from 'expo-router';
 import { Button } from '../../../components/common/Button/Button'
 import { useColorScheme } from '../../../hooks/useColorScheme';
 import { Colors } from '../../../constants/Colors';
+import { useMatchingStore } from '../../../stores/matchingStore';
 
 export default function CompetitionScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const theme = colorScheme ?? 'light';
+  const { startMatching } = useMatchingStore();
 
   const handleMatchingPress = () => {
-    router.push('/(tabs)/competition/matching');
+    startMatching(); // 매칭 상태 초기화 및 시작
+    router.push('/competition/matching' as any);
   };
 
   return (

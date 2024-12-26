@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text } from 'react-native';
 import { useColorScheme } from '../../../hooks/useColorScheme';
 import { Colors } from '../../../constants/Colors';
 import { Button } from '../../common/Button/Button';
+import { WaitingIndicator } from '../WaitingIndicator/WaitingIndicator';
 import { styles } from './WaitingCard.styles';
 import type { WaitingCardProps } from './types';
 
@@ -21,7 +22,7 @@ export function WaitingCard({
       style={[styles.container, { backgroundColor: colors.cardBackground }]}
     >
       <Text style={[styles.title, { color: colors.text }]}>
-        {opponent ? '매칭 완료!' : '매칭 대기 중...'}
+        {opponent ? '매칭 완료!' : '매칭 대기 중'}
       </Text>
 
       {opponent ? (
@@ -37,10 +38,8 @@ export function WaitingCard({
           </Text>
         </View>
       ) : (
-        <ActivityIndicator
-          testID="waiting-indicator"
-          size="large"
-          color={colors.primary}
+        <WaitingIndicator
+          message="상대방을 찾고 있습니다..."
           style={styles.waitingIndicator}
         />
       )}

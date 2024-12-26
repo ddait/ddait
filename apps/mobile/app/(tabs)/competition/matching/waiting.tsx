@@ -1,37 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-// import WaitingIndicator from '../../../components/competition/WaitingIndicator/WaitingIndicator';
-import WaitingIndicator from '../../../../components/competition/WaitingIndicator/WaitingIndicator';
-import { Colors } from '../../../../constants/Colors';
-import { useColorScheme } from '../../../../hooks/useColorScheme';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
+import { WaitingCard } from '@/components/competition/WaitingCard';
+import type { Opponent } from '@/components/competition/WaitingCard/types';
 
 export default function WaitingScreen() {
-  const router = useRouter();
   const colorScheme = useColorScheme();
-  const theme = colorScheme ?? 'light';
+  const colors = Colors[colorScheme ?? 'light'];
+  const router = useRouter();
+  const [opponent, setOpponent] = useState<Opponent | undefined>();
+  const [isOpponentReady, setIsOpponentReady] = useState(false);
 
-  const handleTimeout = () => {
-    // 매칭 실패 또는 취소 시 이전 화면으로 이동
+  useEffect(() => {
+    // TODO: Implement WebSocket connection for real-time matching
+    // For now, simulate finding an opponent after 2 seconds
+    const opponentTimer = setTimeout(() => {
+      setOpponent({
+        name: '홍길동',
+        level: 5,
+        winRate: 60,
+      });
+    }, 2000);
+
+    // Simulate opponent being ready after 4 seconds
+    const readyTimer = setTimeout(() => {
+      setIsOpponentReady(true);
+    }, 4000);
+
+    return () => {
+      clearTimeout(opponentTimer);
+      clearTimeout(readyTimer);
+    };
+  }, []);
+
+  const handleStart = () => {
+    // TODO: Implement competition start logic with backend
+    router.push('../session');
+  };
+
+  const handleCancel = () => {
+    // TODO: Implement cancellation logic with backend
     router.back();
   };
 
-  const handleMatchFound = () => {
-    // 매칭 성공 시 결과 화면으로 이동
-    router.push({
-      pathname: "/(tabs)/competition"
-    });
-  };
-
   return (
-    <View style={[
-      styles.container,
-      { backgroundColor: Colors[theme].background }
-    ]}>
-      <WaitingIndicator
-        onTimeout={handleTimeout}
-        timeout={30000}
-        testID="matching-waiting-indicator"
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <WaitingCard
+        onStart={handleStart}
+        onCancel={handleCancel}
+        opponent={opponent}
+        isOpponentReady={isOpponentReady}
       />
     </View>
   );

@@ -25,7 +25,7 @@ describe('WaitingCard', () => {
     );
 
     expect(getByTestId('waiting-card')).toBeTruthy();
-    expect(getByText('매칭 대기 중...')).toBeTruthy();
+    expect(getByText('매칭 대기 중')).toBeTruthy();
   });
 
   it('shows opponent info when matched', () => {

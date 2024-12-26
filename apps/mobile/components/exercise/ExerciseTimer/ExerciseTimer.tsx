@@ -110,26 +110,26 @@ export function ExerciseTimer({
             <Button 
               testID={time === 0 ? "start-button" : "resume-button"}
               onPress={handleStart} 
-              variant="primary"
+              type="primary"
+              title={time === 0 ? "시작" : "재개"}
             >
-              {time === 0 ? "시작" : "재개"}
             </Button>
           ) : (
             <>
               <Button 
                 testID="pause-button"
                 onPress={handlePause} 
-                variant="secondary"
+                type="secondary"
+                title='일시정지'
               >
-                일시정지
               </Button>
               <Button 
                 testID="stop-button"
                 onPress={handleReset} 
-                variant="ghost" 
+                type="ghost" 
                 disabled={time === 0}
+                title='초기화'
               >
-                초기화
               </Button>
             </>
           )}
