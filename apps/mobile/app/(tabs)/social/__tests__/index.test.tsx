@@ -1,0 +1,107 @@
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import SocialScreen from '../index';
+import type { Friend } from '@/components/social/FriendCard/types';
+
+// Mock expo-router
+jest.mock('expo-router', () => ({
+  Stack: {
+    Screen: () => null,
+  },
+}));
+
+const mockFriends: Friend[] = [
+  {
+    id: '1',
+    name: '홍길동',
+    status: 'online',
+    profileImage: 'https://example.com/1.jpg',
+  },
+  {
+    id: '2',
+    name: '김철수',
+    status: 'offline',
+    profileImage: 'https://example.com/2.jpg',
+  },
+];
+
+// Mock the useFriends hook
+const mockUseFriends = jest.fn();
+jest.mock('@/hooks/useFriends', () => ({
+  useFriends: () => mockUseFriends(),
+}));
+
+describe('SocialScreen', () => {
+  beforeEach(() => {
+    // Reset mock implementation before each test
+    mockUseFriends.mockReturnValue({
+      friends: mockFriends,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+  });
+
+  it('renders loading state initially', () => {
+    mockUseFriends.mockReturnValue({
+      friends: [],
+      isLoading: true,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId } = render(<SocialScreen />);
+    expect(getByTestId('loading-indicator')).toBeTruthy();
+  });
+
+  it('renders friend list when data is loaded', async () => {
+    const { getByText } = render(<SocialScreen />);
+    await waitFor(() => {
+      expect(getByText('홍길동')).toBeTruthy();
+      expect(getByText('김철수')).toBeTruthy();
+    });
+  });
+
+  it('renders error state when loading fails', () => {
+    mockUseFriends.mockReturnValue({
+      friends: [],
+      isLoading: false,
+      error: new Error('Failed to load friends'),
+      refetch: jest.fn(),
+    });
+
+    const { getByText, getByTestId } = render(<SocialScreen />);
+    expect(getByText('친구 목록을 불러오는데 실패했습니다.')).toBeTruthy();
+    expect(getByTestId('retry-button')).toBeTruthy();
+  });
+
+  it('handles retry button press', () => {
+    const mockRefetch = jest.fn();
+    mockUseFriends.mockReturnValue({
+      friends: [],
+      isLoading: false,
+      error: new Error('Failed to load friends'),
+      refetch: mockRefetch,
+    });
+
+    const { getByTestId } = render(<SocialScreen />);
+    fireEvent.press(getByTestId('retry-button'));
+    expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it('handles pull-to-refresh', async () => {
+    const mockRefetch = jest.fn();
+    mockUseFriends.mockReturnValue({
+      friends: mockFriends,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetch,
+    });
+
+    const { getByTestId } = render(<SocialScreen />);
+    const refreshControl = getByTestId('friend-list').props.refreshControl;
+    refreshControl.props.onRefresh();
+
+    expect(mockRefetch).toHaveBeenCalled();
+  });
+}); 

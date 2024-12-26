@@ -8,10 +8,10 @@ const ALLOWED_ROUTES = [
   '/workout',
   '/competition',
   '/social',
-  '/profile',
   '/workout/setup',
   '/workout/session',
   '/workout/complete',
+  '/profile',
 ];
 
 export default function RootLayout() {
