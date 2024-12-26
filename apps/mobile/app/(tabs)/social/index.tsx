@@ -5,16 +5,19 @@ import { Colors } from '@/constants/Colors';
 import { useFriends } from '@/hooks/useFriends';
 import { FriendList } from '@/components/social/FriendList/FriendList';
 import type { Friend } from '@/components/social/FriendCard/types';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
 export default function SocialScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { friends, isLoading, error, refetch } = useFriends();
+  const router = useRouter();
 
   const handleFriendPress = (friend: Friend) => {
-    // TODO: Navigate to friend profile or start chat
-    console.log('Friend pressed:', friend);
+    router.push({
+      pathname: '/(tabs)/social',
+      params: { id: friend.id }
+    } as any);
   };
 
   return (

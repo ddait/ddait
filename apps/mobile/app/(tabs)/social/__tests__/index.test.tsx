@@ -1,46 +1,25 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import SocialScreen from '../index';
-import type { Friend } from '@/components/social/FriendCard/types';
+import { useFriends } from '@/hooks/useFriends';
 
-// Mock expo-router
+jest.mock('@/hooks/useFriends');
 jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
   Stack: {
     Screen: () => null,
   },
 }));
 
-const mockFriends: Friend[] = [
-  {
-    id: '1',
-    name: '홍길동',
-    status: 'online',
-    profileImage: 'https://example.com/1.jpg',
-  },
-  {
-    id: '2',
-    name: '김철수',
-    status: 'offline',
-    profileImage: 'https://example.com/2.jpg',
-  },
-];
-
-// Mock the useFriends hook
-const mockUseFriends = jest.fn();
-jest.mock('@/hooks/useFriends', () => ({
-  useFriends: () => mockUseFriends(),
-}));
-
 describe('SocialScreen', () => {
-  beforeEach(() => {
-    // Reset mock implementation before each test
-    mockUseFriends.mockReturnValue({
-      friends: mockFriends,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-  });
+  const mockFriends = [
+    { id: '1', name: '홍길동', profileImage: 'https://example.com/image1.jpg' },
+    { id: '2', name: '김철수', profileImage: 'https://example.com/image2.jpg' },
+  ];
+
+  const mockUseFriends = useFriends as jest.Mock;
 
   it('renders loading state initially', () => {
     mockUseFriends.mockReturnValue({
@@ -55,6 +34,13 @@ describe('SocialScreen', () => {
   });
 
   it('renders friend list when data is loaded', async () => {
+    mockUseFriends.mockReturnValue({
+      friends: mockFriends,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
     const { getByText } = render(<SocialScreen />);
     await waitFor(() => {
       expect(getByText('홍길동')).toBeTruthy();
