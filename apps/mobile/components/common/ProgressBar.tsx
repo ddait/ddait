@@ -1,22 +1,23 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 
 export interface ProgressBarProps {
   progress: number;
   testID?: string;
+  style?: ViewStyle;
   onProgressUpdate?: (progress: number) => void;
 }
 
-export function ProgressBar({ progress, testID, onProgressUpdate }: ProgressBarProps) {
+export function ProgressBar({ progress, testID, style, onProgressUpdate }: ProgressBarProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <View
       testID={testID}
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }, style]}
       onTouchMove={(e) => {
         if (onProgressUpdate) {
           const { locationX, pageX } = e.nativeEvent;
