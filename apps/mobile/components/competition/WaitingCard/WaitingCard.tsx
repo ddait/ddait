@@ -1,30 +1,30 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { useColorScheme } from '../../../hooks/useColorScheme';
-import { Colors } from '../../../constants/Colors';
-import { Button } from '../../common/Button/Button';
-import { WaitingIndicator } from '../WaitingIndicator/WaitingIndicator';
-import { styles } from './WaitingCard.styles';
-import type { WaitingCardProps } from './types';
+import { View, Text, StyleSheet } from 'react-native';
+import { Colors } from '@constants/Colors';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { Card } from '@components/common/Card';
 
-export function WaitingCard({
-  onStart,
-  onCancel,
-  opponent,
-  isOpponentReady = false,
-}: WaitingCardProps) {
+export interface Opponent {
+  name: string;
+  level: number;
+}
+
+interface WaitingCardProps {
+  opponent: Opponent | null;
+  estimatedTime: string;
+  onAccept: () => void;
+  onDecline: () => void;
+}
+
+export function WaitingCard({ opponent, estimatedTime, onAccept, onDecline }: WaitingCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
-    <View
-      testID="waiting-card"
-      style={[styles.container, { backgroundColor: colors.cardBackground }]}
-    >
+    <Card style={styles.container}>
       <Text style={[styles.title, { color: colors.text }]}>
-        {opponent ? '매칭 완료!' : '매칭 대기 중'}
+        {opponent ? '매칭 완료!' : '매칭 대기 중...'}
       </Text>
-
       {opponent ? (
         <View style={styles.opponentInfo}>
           <Text style={[styles.opponentName, { color: colors.text }]}>
@@ -33,33 +33,40 @@ export function WaitingCard({
           <Text style={[styles.opponentLevel, { color: colors.text }]}>
             Lv.{opponent.level}
           </Text>
-          <Text style={[styles.opponentWinRate, { color: colors.text }]}>
-            승률: {opponent.winRate}%
-          </Text>
         </View>
       ) : (
-        <WaitingIndicator
-          message="상대방을 찾고 있습니다..."
-          style={styles.waitingIndicator}
-        />
+        <Text style={[styles.estimatedTime, { color: colors.text }]}>
+          예상 대기 시간: {estimatedTime}
+        </Text>
       )}
-
-      <View style={styles.buttonContainer}>
-        {opponent && isOpponentReady ? (
-          <Button
-            onPress={onStart}
-            title="대결 시작"
-            type="primary"
-          />
-        ) : (
-          <Button
-            testID="cancel-button"
-            onPress={onCancel}
-            title="취소"
-            type="secondary"
-          />
-        )}
-      </View>
-    </View>
+    </Card>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    padding: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  opponentInfo: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  opponentName: {
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  opponentLevel: {
+    fontSize: 16,
+  },
+  estimatedTime: {
+    fontSize: 16,
+    marginTop: 8,
+  },
+}); 

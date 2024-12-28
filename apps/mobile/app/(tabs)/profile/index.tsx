@@ -1,6 +1,10 @@
 import React from 'react';
-import { Profile } from '@/components/profile/Profile';
+import { View, StyleSheet } from 'react-native';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { Colors } from '@constants/Colors';
+import { Profile } from '@components/profile/Profile';
 import { useRouter } from 'expo-router';
+
 
 // TODO: API 연동 후 실제 사용자 데이터로 교체
 const mockUser = {

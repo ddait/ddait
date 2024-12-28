@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
-import { MatchingCard } from '@/components/competition/MatchingCard/MatchingCard';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { Colors } from '@constants/Colors';
+import { MatchingCard } from '@components/competition/MatchingCard/MatchingCard';
 import { useMatchingStore } from '@/stores/matchingStore';
 
 export default function MatchingScreen() {

@@ -3,12 +3,20 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      'react-native-reanimated/plugin',
-      '@babel/plugin-transform-template-literals',
-      '@babel/plugin-proposal-nullish-coalescing-operator',
-      '@babel/plugin-proposal-optional-chaining',
-      '@babel/plugin-transform-arrow-functions',
-      '@babel/plugin-transform-shorthand-properties',
-    ],
+      'expo-router/babel',
+      [
+        'module-resolver',
+        {
+          root: ['./'],
+          alias: {
+            '@': './',
+            '@components': './components',
+            '@hooks': './hooks',
+            '@constants': './constants',
+            '@services': './services'
+          }
+        }
+      ]
+    ]
   };
 }; 

@@ -1,31 +1,36 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
 import { useColorScheme } from '../../../hooks/useColorScheme';
-import { WorkoutTypeSelector } from '../../../components/workout/WorkoutTypeSelector';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ExerciseTypeGrid } from '@/components/exercise/ExerciseTypeGrid';
+import { RecentExercises } from '@/components/exercise/RecentExercises';
+import { ExercisePresets } from '@/components/exercise/ExercisePresets';
+import { CustomExerciseForm } from '@/components/exercise/CustomExerciseForm';
 
 export default function WorkoutScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
 
-  const handleWorkoutSelect = (workoutId: string) => {
-    router.push({
-      pathname: '/workout/setup',
-      params: { type: workoutId }
-    });
-  };
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <WorkoutTypeSelector onSelect={handleWorkoutSelect} />
-    </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView style={styles.scrollView}>
+        <ExerciseTypeGrid />
+        <RecentExercises />
+        <ExercisePresets />
+        <CustomExerciseForm />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
 }); 

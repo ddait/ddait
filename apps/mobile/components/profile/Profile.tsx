@@ -1,12 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Colors } from '@constants/Colors';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { Card } from '@components/common/Card';
 
 interface User {
   id: string;
@@ -19,101 +15,56 @@ interface User {
 }
 
 interface ProfileProps {
-  user?: User;
-  isLoading?: boolean;
-  error?: string;
+  user: User;
   onEdit?: () => void;
 }
 
-export function Profile({ user, isLoading, error, onEdit }: ProfileProps) {
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer} testID="loading-indicator">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
+export function Profile({ user, onEdit }: ProfileProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   return (
-    <View style={styles.container}>
+    <Card style={styles.container}>
       <View style={styles.header}>
-        <Image
-          source={{ uri: user.profileImage }}
-          style={styles.profileImage}
-          testID="profile-image"
-        />
-        <View style={styles.userInfo}>
-          <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.email}>{user.email}</Text>
-        </View>
-        <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-          <Text style={styles.editButtonText}>프로필 수정</Text>
-        </TouchableOpacity>
+        <Text style={[styles.name, { color: colors.text }]}>
+          {user.name}
+        </Text>
+        <Text style={[styles.email, { color: colors.gray[600] }]}>
+          {user.email}
+        </Text>
       </View>
 
       <View style={styles.stats}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.workoutCount}</Text>
-          <Text style={styles.statLabel}>운동</Text>
+          <Text style={[styles.statLabel, { color: colors.text }]}>운동</Text>
+          <Text style={[styles.statValue, { color: colors.text }]}>
+            {user.workoutCount}
+          </Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.competitionCount}</Text>
-          <Text style={styles.statLabel}>경쟁</Text>
+          <Text style={[styles.statLabel, { color: colors.text }]}>경쟁</Text>
+          <Text style={[styles.statValue, { color: colors.text }]}>
+            {user.competitionCount}
+          </Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.winCount}</Text>
-          <Text style={styles.statLabel}>승리</Text>
+          <Text style={[styles.statLabel, { color: colors.text }]}>승리</Text>
+          <Text style={[styles.statValue, { color: colors.text }]}>
+            {user.winCount}
+          </Text>
         </View>
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
+    margin: 16,
     padding: 16,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 24,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  userInfo: {
-    flex: 1,
-    marginLeft: 16,
   },
   name: {
     fontSize: 24,
@@ -122,36 +73,20 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: '#666',
-  },
-  editButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  editButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   stats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E9ECEF',
   },
   statItem: {
     alignItems: 'center',
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
   statLabel: {
     fontSize: 14,
-    color: '#666',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '500',
   },
 }); 

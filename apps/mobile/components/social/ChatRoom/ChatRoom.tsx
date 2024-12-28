@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { useChat } from '@/hooks/useChat';
+import { useChat } from '@hooks/useChat';
 import { Message } from '@/types/chat';
 
 interface ChatRoomProps {
