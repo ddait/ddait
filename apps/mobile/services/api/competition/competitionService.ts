@@ -87,6 +87,15 @@ export class CompetitionService {
     }
   }
 
+  async getActiveCompetitions(): Promise<Competition[]> {
+    try {
+      const response = await this.api.get<Competition[]>('/competitions/active');
+      return response.data;
+    } catch (error: any) {
+      throw this.handleCompetitionError(error);
+    }
+  }
+
   private handleCompetitionError(error: any): CompetitionError {
     if (error.response?.data?.code) {
       return error.response.data as CompetitionError;

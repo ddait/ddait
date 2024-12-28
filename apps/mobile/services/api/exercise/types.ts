@@ -57,4 +57,24 @@ export interface WorkoutSessionResponse {
 export interface ExerciseError {
   code: 'EXERCISE_NOT_FOUND' | 'INVALID_EXERCISE_DATA' | 'SESSION_NOT_FOUND' | 'INVALID_SESSION_STATUS';
   message: string;
+}
+
+export interface UserSummary {
+  summary: {
+    calories: number;
+    duration: number;
+    progress: number;
+  };
+  weeklyProgress: {
+    days: Array<{
+      date: string;
+      calories: number;
+      duration: number;
+      completed: boolean;
+    }>;
+    weeklyGoal: {
+      target: number;
+      current: number;
+    };
+  };
 } 

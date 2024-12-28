@@ -5,7 +5,8 @@ import {
   CreateWorkoutSessionRequest,
   UpdateWorkoutSessionRequest,
   WorkoutSessionResponse,
-  ExerciseError
+  ExerciseError,
+  UserSummary
 } from './types';
 
 export class ExerciseService {
@@ -67,6 +68,15 @@ export class ExerciseService {
   async getUserWorkoutHistory(userId: string): Promise<WorkoutSession[]> {
     try {
       const response = await this.api.get<WorkoutSession[]>(`/users/${userId}/workout-history`);
+      return response.data;
+    } catch (error: any) {
+      throw this.handleExerciseError(error);
+    }
+  }
+
+  async getUserSummary(): Promise<UserSummary> {
+    try {
+      const response = await this.api.get<UserSummary>('/user/exercise-summary');
       return response.data;
     } catch (error: any) {
       throw this.handleExerciseError(error);

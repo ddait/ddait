@@ -1,46 +1,38 @@
 export interface Competition {
   id: string;
-  title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  type: 'INDIVIDUAL' | 'TEAM';
-  status: 'UPCOMING' | 'IN_PROGRESS' | 'COMPLETED';
-  participants: Array<{
-    userId: string;
-    nickname: string;
+  type: string;
+  remainingTime: string;
+  players: Array<{
+    name: string;
     score: number;
-    rank?: number;
   }>;
-  rules: CompetitionRules;
-}
-
-export interface CompetitionRules {
-  scoringSystem: 'POINTS' | 'TIME' | 'WEIGHT';
-  targetExercises: string[]; // Exercise IDs
-  minimumSets: number;
-  minimumReps?: number;
-  minimumDuration?: number; // in seconds
-  minimumDistance?: number; // in meters
+  status: 'waiting' | 'in_progress' | 'completed';
 }
 
 export interface CreateCompetitionRequest {
-  title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  type: 'INDIVIDUAL' | 'TEAM';
-  rules: CompetitionRules;
+  type: string;
+  startTime?: string;
+  endTime?: string;
+  maxParticipants?: number;
+  rules?: {
+    scoreType: 'calories' | 'duration' | 'distance';
+    targetValue?: number;
+  };
 }
 
 export interface JoinCompetitionRequest {
   userId: string;
-  teamId?: string; // Required for team competitions
+  nickname: string;
 }
 
 export interface SubmitCompetitionResultRequest {
   userId: string;
-  workoutSessionId: string;
+  score: number;
+  exerciseData: {
+    calories?: number;
+    duration?: number;
+    distance?: number;
+  };
 }
 
 export interface CompetitionLeaderboard {
@@ -55,6 +47,6 @@ export interface CompetitionLeaderboard {
 }
 
 export interface CompetitionError {
-  code: 'COMPETITION_NOT_FOUND' | 'INVALID_COMPETITION_DATA' | 'ALREADY_JOINED' | 'INVALID_DATES' | 'COMPETITION_ENDED';
+  code: string;
   message: string;
 } 

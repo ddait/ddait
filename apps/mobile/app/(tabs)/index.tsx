@@ -1,15 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { useColorScheme, useColorSchemeActions } from '../../hooks/useColorScheme';
 import { FontAwesome } from '@expo/vector-icons';
 import { Card } from '../../components/common/Card';
 import { ProgressBar } from '../../components/common/ProgressBar';
+import { WeeklyProgress } from '../../components/home/WeeklyProgress';
+import { useHomeData } from '../../hooks/home/useHomeData';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const { toggleColorScheme } = useColorSchemeActions();
   const colors = Colors[colorScheme ?? 'light'];
+  const { data, isLoading, error, refetch } = useHomeData();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.text }]}>데이터를 불러오는데 실패했습니다.</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+          <Text style={[styles.retryText, { color: colors.primary }]}>다시 시도</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -43,17 +65,17 @@ export default function HomeScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <Text style={[styles.statLabel, { color: colors.gray[600] }]}>소모 칼로리</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>324</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{data?.summary.calories ?? 0}</Text>
             <Text style={[styles.statUnit, { color: colors.gray[600] }]}>kcal</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={[styles.statLabel, { color: colors.gray[600] }]}>운동 시간</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>45</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{data?.summary.duration ?? 0}</Text>
             <Text style={[styles.statUnit, { color: colors.gray[600] }]}>분</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={[styles.statLabel, { color: colors.gray[600] }]}>목표 달성</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>75</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{data?.summary.progress ?? 0}</Text>
             <Text style={[styles.statUnit, { color: colors.gray[600] }]}>%</Text>
           </View>
         </View>
@@ -96,6 +118,10 @@ export default function HomeScreen() {
           </View>
         </View>
       </Card>
+
+      {data?.weeklyProgress && (
+        <WeeklyProgress data={data.weeklyProgress} />
+      )}
     </ScrollView>
   );
 }
@@ -240,5 +266,23 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 8,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  retryButton: {
+    padding: 12,
+    borderRadius: 8,
+  },
+  retryText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
