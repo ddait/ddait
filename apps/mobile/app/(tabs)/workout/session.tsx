@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { ExerciseTimer } from '../../../components/exercise/ExerciseTimer/ExerciseTimer';
 import { TimeFormat } from '../../../components/exercise/ExerciseTimer/types';
 import { Button } from '../../../components/common/Button';

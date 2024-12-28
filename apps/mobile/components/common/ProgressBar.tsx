@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 
 export interface ProgressBarProps {

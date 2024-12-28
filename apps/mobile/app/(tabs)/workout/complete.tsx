@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '../../../hooks/useColorScheme';
-import { Button } from '../../../components/common/Button/Button';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { Button } from '@/components/common/Button/Button';
 import { Card } from '../../../components/common/Card';
 
 export default function WorkoutCompleteScreen() {

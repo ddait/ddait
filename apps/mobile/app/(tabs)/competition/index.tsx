@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 // import { Button } from '../../../components/common/Button';
 import { Button } from '../../../components/common/Button/Button'
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '../../../constants/Colors';
 import { useMatchingStore } from '../../../stores/matchingStore';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { useColorScheme } from '../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import  FontAwesome5  from '@expo/vector-icons/FontAwesome5';
 import { Card } from '../common/Card';
 

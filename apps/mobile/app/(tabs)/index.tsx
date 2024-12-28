@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { useColorScheme, useColorSchemeActions } from '../../hooks/useColorScheme';
+import { useColorScheme, useColorSchemeActions } from '@hooks/useColorScheme';
 import { FontAwesome } from '@expo/vector-icons';
 import { Card } from '../../components/common/Card';
 import { ProgressBar } from '../../components/common/ProgressBar';

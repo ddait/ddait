@@ -1,8 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { ButtonProps } from './types';
-import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@hooks/useColorScheme';
 
 export function Button({
   title,

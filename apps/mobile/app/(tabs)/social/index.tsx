@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator, Text, TouchableOpacity, RefreshControl } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { useFriends } from '@/hooks/useFriends';
 import { FriendList } from '@/components/social/FriendList/FriendList';

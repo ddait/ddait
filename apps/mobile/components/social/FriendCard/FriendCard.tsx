@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import type { FriendCardProps } from './types';
 

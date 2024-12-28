@@ -1,7 +1,5 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useColorScheme } from '@hooks/useColorScheme';
-import { Colors } from '@constants/Colors';
 import { Profile } from '@components/profile/Profile';
 import { useRouter } from 'expo-router';
 
@@ -15,6 +13,10 @@ const mockUser = {
   workoutCount: 42,
   competitionCount: 15,
   winCount: 8,
+  workoutStats: {
+    totalWorkouts: 100,
+    totalDuration: 5000
+  }
 };
 
 export default function ProfileScreen() {

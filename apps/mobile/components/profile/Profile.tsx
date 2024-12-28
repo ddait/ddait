@@ -7,11 +7,10 @@ import { Card } from '@components/common/Card';
 interface User {
   id: string;
   name: string;
-  email: string;
   profileImage: string;
-  workoutCount: number;
-  competitionCount: number;
-  winCount: number;
+  workoutStats: {
+    totalWorkouts: number;
+  };
 }
 
 interface ProfileProps {
@@ -29,28 +28,13 @@ export function Profile({ user, onEdit }: ProfileProps) {
         <Text style={[styles.name, { color: colors.text }]}>
           {user.name}
         </Text>
-        <Text style={[styles.email, { color: colors.gray[600] }]}>
-          {user.email}
-        </Text>
       </View>
 
       <View style={styles.stats}>
         <View style={styles.statItem}>
           <Text style={[styles.statLabel, { color: colors.text }]}>운동</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>
-            {user.workoutCount}
-          </Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statLabel, { color: colors.text }]}>경쟁</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {user.competitionCount}
-          </Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statLabel, { color: colors.text }]}>승리</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {user.winCount}
+            {user.workoutStats.totalWorkouts}
           </Text>
         </View>
       </View>
@@ -70,9 +54,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
   },
   stats: {
     flexDirection: 'row',

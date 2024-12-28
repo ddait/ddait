@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Button } from '../../../components/common/Button/Button';
 
 export default function WorkoutSetupScreen() {

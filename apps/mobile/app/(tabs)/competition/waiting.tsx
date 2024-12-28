@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '../../../constants/Colors';
 import { WaitingCard } from '../../../components/competition/WaitingCard';
 import type { Opponent } from '../../../components/competition/WaitingCard';

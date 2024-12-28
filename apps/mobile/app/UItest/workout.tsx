@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { WorkoutTypeSelector } from '../../components/workout/WorkoutTypeSelector';
 import { Colors } from '../../constants/Colors';
-import { useColorScheme } from '../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 
 export default function WorkoutScreen() {
   const colorScheme = useColorScheme();

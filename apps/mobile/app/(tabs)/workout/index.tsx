@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ExerciseTypeGrid } from '@/components/exercise/ExerciseTypeGrid';
 import { RecentExercises } from '@/components/exercise/RecentExercises';

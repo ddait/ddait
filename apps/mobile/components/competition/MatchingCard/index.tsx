@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+
 import { Colors } from '../../../constants/Colors';
 import { Button } from '../../common/Button';
 

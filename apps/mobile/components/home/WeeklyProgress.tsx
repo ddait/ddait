@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Card } from '../common/Card';
 import { ProgressBar } from '../common/ProgressBar';
 import { Colors } from '../../constants/Colors';
-import { useColorScheme } from '../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 
 interface WeeklyProgressProps {
   data: {

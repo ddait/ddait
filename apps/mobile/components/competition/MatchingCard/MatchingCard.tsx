@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '../../../constants/Colors';
 import { Button } from '../../common/Button/Button';
 import { styles } from './MatchingCard.styles';

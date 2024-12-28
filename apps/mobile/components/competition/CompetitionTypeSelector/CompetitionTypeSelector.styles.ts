@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '../../../hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 
 export const createStyles = () => {
   const colorScheme = useColorScheme() ?? 'light';

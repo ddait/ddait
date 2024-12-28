@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { FriendCard } from '../FriendCard/FriendCard';
 import type { FriendListProps } from './types';
