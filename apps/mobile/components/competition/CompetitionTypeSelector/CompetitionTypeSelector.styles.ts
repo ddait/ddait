@@ -1,26 +1,38 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../constants/Colors';
-import { useColorScheme } from '@hooks/useColorScheme';
+import { useColorScheme } from 'react-native';
 
-export const createStyles = () => {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+export function createStyles() {
+  const isDarkMode = useColorScheme() === 'dark';
 
   return StyleSheet.create({
     container: {
       flex: 1,
       padding: 16,
     },
-    typeCard: {
+    grid: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      margin: -8,
+    },
+    gridItem: {
+      width: '48%',
+      margin: 8,
+    },
+    typeCard: {
+      flexDirection: 'column',
       alignItems: 'center',
       padding: 16,
-      marginBottom: 12,
       borderRadius: 12,
-      backgroundColor: colors.gray[100],
+      backgroundColor: isDarkMode ? '#171717' : '#F7F7F7',
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
     },
     typeCardSelected: {
-      backgroundColor: colors.primary,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E8E8E8',
     },
     typeCardDisabled: {
       opacity: 0.5,
@@ -29,39 +41,41 @@ export const createStyles = () => {
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: colors.gray[200],
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E8E8E8',
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 16,
+      marginBottom: 12,
     },
     iconContainerSelected: {
-      backgroundColor: colors.white,
+      backgroundColor: isDarkMode ? '#3C3C3C' : '#D8D8D8',
     },
     icon: {
       fontSize: 24,
-      color: colors.text,
+      color: isDarkMode ? '#FFFFFF' : '#000000',
     },
     iconSelected: {
-      color: colors.primary,
+      color: isDarkMode ? '#FFFFFF' : '#000000',
     },
     contentContainer: {
-      flex: 1,
+      alignItems: 'center',
     },
     title: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
       marginBottom: 4,
+      color: isDarkMode ? '#FFFFFF' : '#000000',
+      textAlign: 'center',
     },
     titleSelected: {
-      color: colors.white,
+      color: isDarkMode ? '#FFFFFF' : '#000000',
     },
     description: {
-      fontSize: 14,
-      color: colors.gray[600],
+      fontSize: 12,
+      color: isDarkMode ? '#A0A0A0' : '#666666',
+      textAlign: 'center',
     },
     descriptionSelected: {
-      color: colors.gray[100],
+      color: isDarkMode ? '#B0B0B0' : '#444444',
     },
   });
-}; 
+} 

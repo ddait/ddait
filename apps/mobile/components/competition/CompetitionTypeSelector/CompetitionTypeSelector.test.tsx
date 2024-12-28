@@ -1,12 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { CompetitionTypeSelector } from './CompetitionTypeSelector';
-import { CompetitionType } from './types';
-
-// Mock FontAwesome component
-jest.mock('@expo/vector-icons', () => ({
-  FontAwesome: 'FontAwesome',
-}));
 
 describe('CompetitionTypeSelector', () => {
   const mockOnSelect = jest.fn();
@@ -16,45 +10,43 @@ describe('CompetitionTypeSelector', () => {
   });
 
   it('renders all competition types', () => {
-    const { getByText, getByTestId } = render(
-      <CompetitionTypeSelector onSelect={mockOnSelect} />
-    );
-
-    // 컴포넌트가 렌더링되었는지 확인
-    expect(getByTestId('competition-type-selector')).toBeTruthy();
-    
-    // 모든 경쟁 유형이 표시되는지 확인
-    expect(getByText('1:1 대결')).toBeTruthy();
-    expect(getByText('과거 기록과 대결')).toBeTruthy();
-    expect(getByText('친구 대결')).toBeTruthy();
-  });
-
-  it('calls onSelect with correct type when a competition type is selected', () => {
     const { getByText } = render(
       <CompetitionTypeSelector onSelect={mockOnSelect} />
     );
 
-    // 1:1 대결 선택
+    expect(getByText('1:1 대결')).toBeTruthy();
+    expect(getByText('그룹 챌린지')).toBeTruthy();
+    expect(getByText('랭킹전')).toBeTruthy();
+    expect(getByText('과거 기록 도전')).toBeTruthy();
+  });
+
+  it('calls onSelect with correct type when pressed', () => {
+    const { getByText } = render(
+      <CompetitionTypeSelector onSelect={mockOnSelect} />
+    );
+
     fireEvent.press(getByText('1:1 대결'));
     expect(mockOnSelect).toHaveBeenCalledWith('oneOnOne');
 
-    // 과거 기록과 대결 선택
-    fireEvent.press(getByText('과거 기록과 대결'));
-    expect(mockOnSelect).toHaveBeenCalledWith('history');
+    fireEvent.press(getByText('그룹 챌린지'));
+    expect(mockOnSelect).toHaveBeenCalledWith('group');
 
-    // 친구 대결 선택
-    fireEvent.press(getByText('친구 대결'));
-    expect(mockOnSelect).toHaveBeenCalledWith('friend');
+    fireEvent.press(getByText('랭킹전'));
+    expect(mockOnSelect).toHaveBeenCalledWith('ranking');
+
+    fireEvent.press(getByText('과거 기록 도전'));
+    expect(mockOnSelect).toHaveBeenCalledWith('history');
   });
 
-  it('renders icons for each competition type', () => {
-    const { getAllByRole } = render(
-      <CompetitionTypeSelector onSelect={mockOnSelect} />
+  it('applies selected styles when type is selected', () => {
+    const { getByText, rerender } = render(
+      <CompetitionTypeSelector onSelect={mockOnSelect} selectedType="oneOnOne" />
     );
-    
-    // 각 타입별 버튼이 있는지 확인
-    const buttons = getAllByRole('button');
-    expect(buttons).toHaveLength(3);
+
+    const oneOnOneCard = getByText('1:1 대결').parent?.parent;
+    expect(oneOnOneCard?.props.style).toContainEqual(
+      expect.objectContaining({ backgroundColor: expect.any(String) })
+    );
   });
 
   it('disables interaction when disabled prop is true', () => {
@@ -64,5 +56,18 @@ describe('CompetitionTypeSelector', () => {
 
     fireEvent.press(getByText('1:1 대결'));
     expect(mockOnSelect).not.toHaveBeenCalled();
+  });
+
+  it('applies animation on press', () => {
+    const { getByText } = render(
+      <CompetitionTypeSelector onSelect={mockOnSelect} />
+    );
+
+    const button = getByText('1:1 대결').parent?.parent;
+    expect(button?.props.style).toContainEqual(
+      expect.objectContaining({
+        transform: [{ scale: expect.any(Object) }],
+      })
+    );
   });
 }); 

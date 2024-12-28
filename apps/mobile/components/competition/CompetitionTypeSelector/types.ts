@@ -1,7 +1,7 @@
 import { ComponentProps } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 
-export type CompetitionType = 'oneOnOne' | 'history' | 'friend';
+export type CompetitionType = 'oneOnOne' | 'group' | 'ranking' | 'history';
 
 export interface CompetitionTypeInfo {
   id: CompetitionType;
