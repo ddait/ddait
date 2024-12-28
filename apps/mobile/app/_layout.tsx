@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@hooks/useColorScheme';
-import { Colors } from '../constants/Colors';
+import { useFonts } from 'expo-font';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 // Define available routes
 const ALLOWED_ROUTES = [
@@ -16,15 +17,20 @@ const ALLOWED_ROUTES = [
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const [loaded, error] = useFonts(MaterialIcons.font);
+
+  if (!loaded) {
+    console.log('Font loading failed:', error);
+    return null;
+  }
 
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
         },
-        headerTintColor: colors.text,
+        headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
       }}
       initialRouteName="(tabs)"
     >

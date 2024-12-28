@@ -6,10 +6,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'ddait2',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/icon.png',
+  icon: './assets/images/icon.png',
   userInterfaceStyle: 'automatic',
   splash: {
-    image: './assets/splash.png',
+    image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff'
   },
@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
+      foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#FFFFFF'
     },
     package: 'com.ddait2.app'
