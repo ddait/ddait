@@ -16,7 +16,8 @@ export function createStyles() {
       margin: -8,
     },
     gridItem: {
-      width: '48%',
+      // width: '48%',
+      width: '40%',
       margin: 8,
     },
     typeCard: {

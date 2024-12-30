@@ -4,13 +4,14 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '@constants/Colors';
 import { MatchingCard } from '@components/competition/MatchingCard/MatchingCard';
+import { WaitingCard } from '@components/competition/WaitingCard';
 import { useMatchingStore } from '@/stores/matchingStore';
 
 export default function MatchingScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const { status, setMatched, reset } = useMatchingStore();
+  const { status, opponent, setMatched, reset } = useMatchingStore();
 
   const handleCancel = () => {
     reset();
@@ -29,6 +30,10 @@ export default function MatchingScreen() {
     }, 3000);
   };
 
+  const handleAccept = () => {
+    router.push('/competition/session' as any);
+  };
+
   // 화면을 벗어날 때 매칭 상태 초기화
   useEffect(() => {
     return () => {
@@ -38,14 +43,46 @@ export default function MatchingScreen() {
     };
   }, [status, reset]);
 
+  const renderMatchingContent = () => {
+    switch (status) {
+      case 'idle':
+        return (
+          <MatchingCard 
+            onStart={handleStart}
+            onCancel={handleCancel}
+            isMatching={false}
+            estimatedWaitTime="약 1분"
+          />
+        );
+      case 'searching':
+        return (
+          <MatchingCard 
+            onStart={handleStart}
+            onCancel={handleCancel}
+            isMatching={true}
+            estimatedWaitTime="약 1분"
+          />
+        );
+      case 'matched':
+        return (
+          <WaitingCard
+            opponent={opponent ? {
+              name: opponent.name,
+              level: opponent.level,
+            } : null}
+            estimatedTime="약 1분"
+            onAccept={handleAccept}
+            onDecline={handleCancel}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <MatchingCard 
-        onCancel={handleCancel}
-        onStart={handleStart}
-        isMatching={status === 'searching'}
-        estimatedWaitTime="약 1분"
-      />
+      {renderMatchingContent()}
     </View>
   );
 }
