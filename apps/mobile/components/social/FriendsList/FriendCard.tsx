@@ -6,8 +6,10 @@ import { styles } from './styles';
 import { useThemeColor } from '../../../hooks/useThemeColor';
 
 const FriendCard: React.FC<IFriendCardProps> = ({ friend, onPress }) => {
-  const backgroundColor = useThemeColor({}, 'cardBackground');
-  const textColor = useThemeColor({}, 'text');
+  console.log('FriendCard rendering:', friend);
+  
+  const backgroundColor = useThemeColor({}, 'cardBackground') as ColorValue;
+  const textColor = useThemeColor({}, 'text') as ColorValue;
 
   const formattedTime = new Date(friend.lastActive).toLocaleTimeString([], {
     hour: '2-digit',
@@ -18,7 +20,7 @@ const FriendCard: React.FC<IFriendCardProps> = ({ friend, onPress }) => {
     <TouchableOpacity
       testID="friend-card"
       onPress={() => onPress?.(friend)}
-      style={[styles.friendCard, { backgroundColor: backgroundColor as ColorValue }]}
+      style={styles.friendCard}
     >
       <View style={styles.avatarContainer}>
         {friend.avatar ? (
@@ -36,15 +38,12 @@ const FriendCard: React.FC<IFriendCardProps> = ({ friend, onPress }) => {
           <ThemedText style={styles.name}>{friend.name}</ThemedText>
         </View>
         {friend.recentActivity && (
-          <ThemedText
-            style={[styles.activity, { color: textColor as ColorValue }]}
-            numberOfLines={1}
-          >
+          <ThemedText style={styles.activity} numberOfLines={1}>
             {friend.recentActivity}
           </ThemedText>
         )}
         <ThemedText style={styles.activity}>
-          {friend.isOnline ? 'Online' : `Last active ${formattedTime}`}
+          {friend.isOnline ? '온라인' : `마지막 접속 ${formattedTime}`}
         </ThemedText>
       </View>
     </TouchableOpacity>

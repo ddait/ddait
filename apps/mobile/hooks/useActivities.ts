@@ -1,8 +1,25 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { IActivity } from '@/components/social/ActivityFeed/types';
 
+const initialActivities: IActivity[] = [
+  {
+    id: '1',
+    userId: 'user1',
+    type: 'exercise',
+    content: '오늘 5km 달리기를 완료했습니다',
+    timestamp: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    userId: 'user2',
+    type: 'competition',
+    content: '주간 운동 챌린지에서 1등을 달성했습니다',
+    timestamp: new Date().toISOString(),
+  },
+];
+
 export function useActivities() {
-  const [activities, setActivities] = useState<IActivity[]>([]);
+  const [activities, setActivities] = useState<IActivity[]>(initialActivities);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -11,29 +28,17 @@ export function useActivities() {
       setIsLoading(true);
       setError(null);
       // TODO: API 연동
-      const mockActivities: IActivity[] = [
-        {
-          id: '1',
-          userId: 'user1',
-          type: 'exercise',
-          content: '운동을 완료했습니다',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          userId: 'user2',
-          type: 'competition',
-          content: '경쟁에서 승리했습니다',
-          timestamp: new Date().toISOString(),
-        },
-      ];
-      setActivities(mockActivities);
+      setActivities(initialActivities);
     } catch (err) {
       setError(err as Error);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const refetch = useCallback(() => {
     return fetchActivities();

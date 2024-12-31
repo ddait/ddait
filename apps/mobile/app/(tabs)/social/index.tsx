@@ -21,12 +21,14 @@ function ActivityTab() {
   if (error) return <ErrorView message="활동 피드를 불러오는데 실패했습니다." onRetry={refetch} />;
 
   return (
-    <ActivityFeed
-      activities={activities}
-      isLoading={isLoading}
-      onRefresh={refetch}
-      onLoadMore={loadMore}
-    />
+    <View style={styles.tabContainer}>
+      <ActivityFeed
+        activities={activities}
+        isLoading={isLoading}
+        onRefresh={refetch}
+        onLoadMore={loadMore}
+      />
+    </View>
   );
 }
 
@@ -45,15 +47,17 @@ function FriendsTab() {
   if (error) return <ErrorView message="친구 목록을 불러오는데 실패했습니다." onRetry={refetch} />;
 
   return (
-    <FriendsList
-      friends={friends}
-      friendRequests={friendRequests}
-      isLoading={isLoading}
-      onRefresh={refetch}
-      onLoadMore={loadMore}
-      onAcceptRequest={handleAcceptRequest}
-      onRejectRequest={handleRejectRequest}
-    />
+    <View style={styles.tabContainer}>
+      <FriendsList
+        friends={friends}
+        friendRequests={friendRequests}
+        isLoading={isLoading}
+        onRefresh={refetch}
+        onLoadMore={loadMore}
+        onAcceptRequest={handleAcceptRequest}
+        onRejectRequest={handleRejectRequest}
+      />
+    </View>
   );
 }
 
@@ -134,27 +138,44 @@ export default function SocialScreen() {
           tabBarIndicatorStyle: {
             backgroundColor: colors.primary,
           },
+          tabBarLabelStyle: {
+            fontSize: 14,
+            fontWeight: '600',
+          },
+          lazy: true,
         }}
       >
         <Tab.Screen
           name="Activity"
           component={ActivityTab}
-          options={{ title: '활동' }}
+          options={{
+            tabBarLabel: '활동',
+            tabBarAccessibilityLabel: '활동 탭',
+          }}
         />
         <Tab.Screen
           name="Friends"
           component={FriendsTab}
-          options={{ title: '친구' }}
+          options={{
+            tabBarLabel: '친구',
+            tabBarAccessibilityLabel: '친구 탭',
+          }}
         />
         <Tab.Screen
-          name="Chats"
+          name="Chat"
           component={ChatsTab}
-          options={{ title: '채팅' }}
+          options={{
+            tabBarLabel: '채팅',
+            tabBarAccessibilityLabel: '채팅 탭'
+          }}
         />
         <Tab.Screen
-          name="Notifications"
+          name="Notification"
           component={NotificationsTab}
-          options={{ title: '알림' }}
+          options={{
+            tabBarLabel: '알림',
+            tabBarAccessibilityLabel: '알림 탭'
+          }}
         />
       </Tab.Navigator>
     </View>
@@ -163,6 +184,10 @@ export default function SocialScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  tabContainer: {
     flex: 1,
     backgroundColor: Colors.light.background,
   },

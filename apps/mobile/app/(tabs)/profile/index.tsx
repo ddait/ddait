@@ -1,36 +1,76 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Profile } from '@components/profile/Profile';
-import { useRouter } from 'expo-router';
-
-
-// TODO: API 연동 후 실제 사용자 데이터로 교체
-const mockUser = {
-  id: '1',
-  name: '홍길동',
-  email: 'hong@example.com',
-  profileImage: 'https://via.placeholder.com/150',
-  workoutCount: 42,
-  competitionCount: 15,
-  winCount: 8,
-  workoutStats: {
-    totalWorkouts: 100,
-    totalDuration: 5000
-  }
-};
+import { Stack } from 'expo-router';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
+import Profile from '@/components/social/Profile';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ProfileScreen() {
-  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  const {
+    profile,
+    stats,
+    achievements,
+    isLoading,
+    error,
+    updateProfile,
+    updateSettings,
+    updateTheme,
+    updateLanguage,
+    refreshProfile,
+  } = useProfile();
 
   const handleEditProfile = () => {
     // TODO: 프로필 수정 화면으로 이동
-    router.push('/(tabs)/profile/edit' as any);
+  };
+
+  const handleSettingsPress = () => {
+    // TODO: 설정 화면으로 이동
+  };
+
+  const handleAchievementPress = () => {
+    // TODO: 업적 상세 화면으로 이동
+  };
+
+  const handleSettingChange = (key: string, value: any) => {
+    updateSettings(key, value);
+  };
+
+  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
+    updateTheme(theme);
+  };
+
+  const handleLanguageChange = (language: string) => {
+    updateLanguage(language);
   };
 
   return (
-    <Profile
-      user={mockUser}
-      onEdit={handleEditProfile}
-    />
+    <>
+      <Stack.Screen
+        options={{
+          title: '프로필',
+          headerLargeTitle: true,
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+          headerTitleStyle: {
+            color: colors.text,
+          },
+        }}
+      />
+      <Profile
+        userProfile={profile || undefined}
+        activityStats={stats || undefined}
+        achievements={achievements}
+        isLoading={isLoading}
+        onEditProfile={handleEditProfile}
+        onSettingsPress={handleSettingsPress}
+        onAchievementPress={handleAchievementPress}
+        onSettingChange={handleSettingChange}
+        onThemeChange={handleThemeChange}
+        onLanguageChange={handleLanguageChange}
+      />
+    </>
   );
 } 

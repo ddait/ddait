@@ -1,8 +1,33 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { INotification } from '@/components/social/Notifications/types';
 
+const initialNotifications: INotification[] = [
+  {
+    id: '1',
+    type: 'friend_request',
+    message: '김운동님이 친구 요청을 보냈습니다',
+    isRead: false,
+    timestamp: new Date().toISOString(),
+    metadata: {
+      userId: 'user1',
+      avatar: 'https://i.pravatar.cc/150?img=6',
+    },
+  },
+  {
+    id: '2',
+    type: 'competition',
+    message: '새로운 운동 챌린지가 시작되었습니다: 30일 플랭크 챌린지',
+    isRead: true,
+    timestamp: new Date().toISOString(),
+    metadata: {
+      challengeId: 'challenge1',
+      type: 'plank',
+    },
+  },
+];
+
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<INotification[]>([]);
+  const [notifications, setNotifications] = useState<INotification[]>(initialNotifications);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -11,29 +36,17 @@ export function useNotifications() {
       setIsLoading(true);
       setError(null);
       // TODO: API 연동
-      const mockNotifications: INotification[] = [
-        {
-          id: '1',
-          type: 'friend_request',
-          message: '홍길동님이 친구 요청을 보냈습니다',
-          isRead: false,
-          timestamp: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          type: 'competition',
-          message: '새로운 경쟁이 시작되었습니다',
-          isRead: true,
-          timestamp: new Date().toISOString(),
-        },
-      ];
-      setNotifications(mockNotifications);
+      setNotifications(initialNotifications);
     } catch (err) {
       setError(err as Error);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const refetch = useCallback(() => {
     return fetchNotifications();

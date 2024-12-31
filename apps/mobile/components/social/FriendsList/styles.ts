@@ -3,11 +3,13 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   searchContainer: {
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF',
   },
   searchInput: {
     height: 40,
@@ -20,16 +22,19 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#FFFFFF',
   },
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
+    color: '#000000',
   },
   sectionHeader: {
     padding: 16,
@@ -38,12 +43,14 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#000000',
   },
   friendCard: {
     flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF',
   },
   avatarContainer: {
     marginRight: 12,
@@ -77,6 +84,7 @@ export const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '500',
+    color: '#000000',
   },
   activity: {
     fontSize: 14,

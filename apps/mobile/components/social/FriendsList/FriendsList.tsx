@@ -21,10 +21,10 @@ const FriendRequestItem: React.FC<{
   onAccept?: (requestId: string) => void;
   onReject?: (requestId: string) => void;
 }> = ({ request, onAccept, onReject }) => {
-  const backgroundColor = useThemeColor({}, 'cardBackground');
+  const backgroundColor = useThemeColor({}, 'cardBackground') as ColorValue;
 
   return (
-    <View style={[styles.friendCard, { backgroundColor: backgroundColor as ColorValue }]}>
+    <View style={styles.friendCard}>
       <View style={styles.avatarContainer}>
         {request.avatar ? (
           <Image
@@ -43,14 +43,14 @@ const FriendRequestItem: React.FC<{
             style={styles.acceptButton}
             onPress={() => onAccept?.(request.id)}
           >
-            <ThemedText style={styles.buttonText}>Accept</ThemedText>
+            <ThemedText style={styles.buttonText}>수락</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
             testID={`reject-request-button-${request.id}`}
             style={styles.rejectButton}
             onPress={() => onReject?.(request.id)}
           >
-            <ThemedText style={styles.buttonText}>Reject</ThemedText>
+            <ThemedText style={styles.buttonText}>거절</ThemedText>
           </TouchableOpacity>
         </View>
       </View>
@@ -70,8 +70,10 @@ const FriendsList: React.FC<IFriendsListProps> = ({
   onSearch,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({}, 'background') as ColorValue;
+  const textColor = useThemeColor({}, 'text') as ColorValue;
+
+  console.log('Theme colors:', { backgroundColor, textColor });
 
   const handleSearch = useCallback((text: string) => {
     setSearchQuery(text);
@@ -82,82 +84,93 @@ const FriendsList: React.FC<IFriendsListProps> = ({
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderFriendRequest = useCallback(({ item }: { item: IFriendRequest }) => (
-    <FriendRequestItem
-      request={item}
-      onAccept={onAcceptRequest}
-      onReject={onRejectRequest}
-    />
-  ), [onAcceptRequest, onRejectRequest]);
+  const renderFriendRequest = useCallback(({ item }: { item: IFriendRequest }) => {
+    return (
+      <FriendRequestItem
+        request={item}
+        onAccept={onAcceptRequest}
+        onReject={onRejectRequest}
+      />
+    );
+  }, [onAcceptRequest, onRejectRequest]);
 
-  const renderFriend = useCallback(({ item }: { item: IFriend }) => (
-    <FriendCard friend={item} onPress={onFriendPress} />
-  ), [onFriendPress]);
+  const renderFriend = useCallback(({ item }: { item: IFriend }) => {
+    console.log('Rendering friend:', item);
+    return (
+      <FriendCard friend={item} onPress={onFriendPress} />
+    );
+  }, [onFriendPress]);
 
   if (isLoading && !friends.length && !friendRequests.length) {
+    console.log('Rendering loading state');
     return (
-      <ThemedView style={styles.loadingContainer} testID="friends-list-loading">
-        <ActivityIndicator size="large" color={textColor as ColorValue} />
+      <ThemedView style={[styles.loadingContainer]} testID="friends-list-loading">
+        <ActivityIndicator size="large" color={textColor} />
       </ThemedView>
     );
   }
 
   if (!friends.length && !friendRequests.length) {
+    console.log('Rendering empty state');
     return (
-      <ThemedView style={styles.emptyContainer} testID="friends-list-empty">
-        <ThemedText style={styles.emptyText}>No friends yet</ThemedText>
+      <ThemedView style={[styles.emptyContainer]} testID="friends-list-empty">
+        <ThemedText style={styles.emptyText}>아직 친구가 없습니다</ThemedText>
       </ThemedView>
     );
   }
 
+  console.log('Rendering main list');
   return (
-    <FlatList
-      testID="friends-list"
-      style={[styles.container, { backgroundColor: backgroundColor as ColorValue }]}
-      ListHeaderComponent={
-        <>
-          <View style={styles.searchContainer}>
-            <TextInput
-              testID="friends-search-input"
-              style={styles.searchInput}
-              placeholder="Search friends"
-              value={searchQuery}
-              onChangeText={handleSearch}
-            />
-          </View>
-          {friendRequests.length > 0 && (
-            <>
-              <View style={styles.sectionHeader}>
-                <ThemedText style={styles.sectionTitle}>Friend Requests</ThemedText>
-              </View>
-              {friendRequests.map(request => (
-                <FriendRequestItem
-                  key={request.id}
-                  request={request}
-                  onAccept={onAcceptRequest}
-                  onReject={onRejectRequest}
-                />
-              ))}
-              <View style={styles.sectionHeader}>
-                <ThemedText style={styles.sectionTitle}>Friends</ThemedText>
-              </View>
-            </>
-          )}
-        </>
-      }
-      data={filteredFriends}
-      renderItem={renderFriend}
-      keyExtractor={item => item.id}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={onRefresh}
-          tintColor={textColor as ColorValue}
-        />
-      }
-      onEndReached={onLoadMore}
-      onEndReachedThreshold={0.5}
-    />
+    <ThemedView style={styles.container}>
+      <FlatList
+        testID="friends-list"
+        style={styles.container}
+        ListHeaderComponent={
+          <>
+            <View style={styles.searchContainer}>
+              <TextInput
+                testID="friends-search-input"
+                style={styles.searchInput}
+                placeholder="친구 검색"
+                value={searchQuery}
+                onChangeText={handleSearch}
+                placeholderTextColor="#737373"
+              />
+            </View>
+            {friendRequests.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <ThemedText style={styles.sectionTitle}>친구 요청</ThemedText>
+                </View>
+                {friendRequests.map(request => (
+                  <FriendRequestItem
+                    key={request.id}
+                    request={request}
+                    onAccept={onAcceptRequest}
+                    onReject={onRejectRequest}
+                  />
+                ))}
+                <View style={styles.sectionHeader}>
+                  <ThemedText style={styles.sectionTitle}>친구 목록</ThemedText>
+                </View>
+              </>
+            )}
+          </>
+        }
+        data={filteredFriends}
+        renderItem={renderFriend}
+        keyExtractor={item => item.id}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={onRefresh}
+            tintColor={textColor}
+          />
+        }
+        onEndReached={onLoadMore}
+        onEndReachedThreshold={0.5}
+      />
+     </ThemedView> 
   );
 };
 
