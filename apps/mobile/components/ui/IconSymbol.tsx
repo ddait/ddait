@@ -1,5 +1,16 @@
 import { StyleSheet, Text, TextProps } from 'react-native';
 
+const ICON_MAP: Record<string, string> = {
+  run: '🏃',
+  bicycle: '🚲',
+  water: '🏊',
+  walk: '🚶',
+  barbell: '🏋️',
+  pause: '⏸️',
+  play: '▶️',
+  stop: '⏹️',
+};
+
 interface IconSymbolProps extends TextProps {
   name: string;
   size?: number;
@@ -20,7 +31,7 @@ export function IconSymbol({ name, size = 24, weight = 'regular', color, style, 
         style,
       ]}
       {...props}>
-      {name}
+      {ICON_MAP[name] || name}
     </Text>
   );
 }
