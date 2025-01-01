@@ -2,8 +2,8 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
-import ActivityFeed from '@/components/social/ActivityFeed';
-import { useActivities } from '@/hooks/useActivities';
+import ChatList from '@/components/social/ChatList';
+import { useChats } from '@/hooks/useChats';
 
 function ErrorView({ message, onRetry }: { message: string; onRetry: () => void }) {
   const colorScheme = useColorScheme();
@@ -22,19 +22,19 @@ function ErrorView({ message, onRetry }: { message: string; onRetry: () => void 
   );
 }
 
-export default function SocialScreen() {
-  const { activities, isLoading, error, refetch, loadMore } = useActivities();
+export default function ChatListScreen() {
+  const { chats, isLoading, error, refetch, loadMore } = useChats();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   if (error) {
-    return <ErrorView message="활동 피드를 불러오는데 실패했습니다." onRetry={refetch} />;
+    return <ErrorView message="채팅 목록을 불러오는데 실패했습니다." onRetry={refetch} />;
   }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ActivityFeed
-        activities={activities}
+      <ChatList
+        chatRooms={chats}
         isLoading={isLoading}
         onRefresh={refetch}
         onLoadMore={loadMore}

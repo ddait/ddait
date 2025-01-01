@@ -2,8 +2,8 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
-import ActivityFeed from '@/components/social/ActivityFeed';
-import { useActivities } from '@/hooks/useActivities';
+import Notifications from '@/components/social/Notifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 function ErrorView({ message, onRetry }: { message: string; onRetry: () => void }) {
   const colorScheme = useColorScheme();
@@ -22,22 +22,23 @@ function ErrorView({ message, onRetry }: { message: string; onRetry: () => void 
   );
 }
 
-export default function SocialScreen() {
-  const { activities, isLoading, error, refetch, loadMore } = useActivities();
+export default function NotificationScreen() {
+  const { notifications, isLoading, error, refetch, loadMore, markAsRead } = useNotifications();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   if (error) {
-    return <ErrorView message="활동 피드를 불러오는데 실패했습니다." onRetry={refetch} />;
+    return <ErrorView message="알림을 불러오는데 실패했습니다." onRetry={refetch} />;
   }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ActivityFeed
-        activities={activities}
+      <Notifications
+        notifications={notifications}
         isLoading={isLoading}
         onRefresh={refetch}
         onLoadMore={loadMore}
+        onMarkAsRead={markAsRead}
       />
     </View>
   );
