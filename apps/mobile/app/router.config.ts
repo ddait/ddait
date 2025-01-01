@@ -5,7 +5,15 @@ export default {
     '(tabs)': {
       initialRouteName: 'index',
       screens: {
-        social: 'social',
+        social: {
+          screens: {
+            index: '',
+            'chat/index': 'chat',
+            'chat/[id]': 'chat/:id',
+            'notifications/index': 'notifications',
+            '[id]/index': ':id',
+          },
+        },
         profile: 'profile',
         index: '',
         workout: 'workout',

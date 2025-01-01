@@ -40,10 +40,10 @@ export default function TabLayout() {
         name="social"
         options={{
           title: '소셜',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="people" size={24} color={color} />
           ),
-          headerRight: () => <HeaderRight />
         }}
       />
       <Tabs.Screen
@@ -51,7 +51,7 @@ export default function TabLayout() {
         options={{
           title: '프로필',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="people" size={24} color={color} />
+            <MaterialIcons name="person" size={24} color={color} />
           ),
         }}
       />

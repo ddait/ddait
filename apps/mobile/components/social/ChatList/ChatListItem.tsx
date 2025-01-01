@@ -9,10 +9,12 @@ const ChatListItem: React.FC<IChatListItemProps> = ({ chatRoom, onPress }) => {
   const backgroundColor = useThemeColor({}, 'cardBackground');
   const textColor = useThemeColor({}, 'text');
 
-  const formattedTime = new Date(chatRoom.lastMessageTime).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedTime = chatRoom.lastMessage 
+    ? new Date(chatRoom.lastMessage.timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
 
   return (
     <TouchableOpacity
@@ -39,7 +41,7 @@ const ChatListItem: React.FC<IChatListItemProps> = ({ chatRoom, onPress }) => {
           style={[styles.message, { color: textColor as ColorValue }]}
           numberOfLines={1}
         >
-          {chatRoom.lastMessage}
+          {chatRoom.lastMessage?.text || '새로운 대화를 시작하세요'}
         </ThemedText>
       </View>
       {chatRoom.unreadCount > 0 && (

@@ -22,6 +22,7 @@ export default function CompetitionLayout() {
         name="index"
         options={{
           title: '경쟁',
+          headerShown: false 
         }}
       />
       <Stack.Screen
