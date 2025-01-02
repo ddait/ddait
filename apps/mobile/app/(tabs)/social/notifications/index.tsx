@@ -23,12 +23,12 @@ function ErrorView({ message, onRetry }: { message: string; onRetry: () => void 
 }
 
 export default function NotificationScreen() {
-  const { notifications, isLoading, error, refetch, loadMore, markAsRead } = useNotifications();
+  const { notifications, isLoading, error, refresh, loadMore, markAsRead } = useNotifications();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   if (error) {
-    return <ErrorView message="알림을 불러오는데 실패했습니다." onRetry={refetch} />;
+    return <ErrorView message="알림을 불러오는데 실패했습니다." onRetry={refresh} />;
   }
 
   return (
@@ -36,7 +36,7 @@ export default function NotificationScreen() {
       <Notifications
         notifications={notifications}
         isLoading={isLoading}
-        onRefresh={refetch}
+        onRefresh={refresh}
         onLoadMore={loadMore}
         onMarkAsRead={markAsRead}
       />
