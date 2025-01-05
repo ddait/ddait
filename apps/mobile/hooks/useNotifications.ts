@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { INotification, INotificationFilters, NotificationSortType } from '@/components/social/Notifications/types';
 import NotificationService from '@/services/notification/NotificationService';
+import { useNotificationStore } from '@/stores/NotificationStore';
 
 export function useNotifications(
   initialFilters?: INotificationFilters,
@@ -12,7 +13,6 @@ export function useNotifications(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,6 +21,9 @@ export function useNotifications(
 
   // NotificationService 인스턴스
   const notificationService = useRef(NotificationService.getInstance());
+
+  // NotificationStore
+  const { setUnreadCount, decrementUnreadCount, resetUnreadCount } = useNotificationStore();
 
   // 알림 목록 조회
   const fetchNotifications = useCallback(async (page: number, refresh = false) => {
@@ -45,7 +48,7 @@ export function useNotifications(
       setHasMore(response.pagination.hasMore);
       setCurrentPage(response.pagination.currentPage);
 
-      // 읽지 않은 알림 수 업데이트
+      // 읽지 않은 알림 수 업데이트 (전역 상태)
       const count = await notificationService.current.getUnreadCount();
       setUnreadCount(count);
     } catch (err) {
@@ -54,7 +57,7 @@ export function useNotifications(
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [filters, sort]);
+  }, [filters, sort, setUnreadCount]);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -84,11 +87,11 @@ export function useNotifications(
             : notification
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      decrementUnreadCount();
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
-  }, []);
+  }, [decrementUnreadCount]);
 
   // 전체 읽음 처리
   const markAllAsRead = useCallback(async () => {
@@ -97,11 +100,11 @@ export function useNotifications(
       setNotifications(prev =>
         prev.map(notification => ({ ...notification, status: 'read' }))
       );
-      setUnreadCount(0);
+      resetUnreadCount();
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
     }
-  }, []);
+  }, [resetUnreadCount]);
 
   // 알림 삭제
   const deleteNotification = useCallback(async (notificationId: string) => {
@@ -113,12 +116,12 @@ export function useNotifications(
       // 삭제된 알림이 읽지 않은 상태였다면 카운트 감소
       const deletedNotification = notifications.find(n => n.id === notificationId);
       if (deletedNotification?.status === 'unread') {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+        decrementUnreadCount();
       }
     } catch (err) {
       console.error('Failed to delete notification:', err);
     }
-  }, [notifications]);
+  }, [notifications, decrementUnreadCount]);
 
   // 필터 변경
   const updateFilters = useCallback((newFilters: INotificationFilters) => {
@@ -140,7 +143,6 @@ export function useNotifications(
     isRefreshing,
     error,
     hasMore,
-    unreadCount,
     filters,
     sort,
     refresh,

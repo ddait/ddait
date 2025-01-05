@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { Colors } from '../../../constants/Colors';
-import { HeaderRight } from '../../../components/common/HeaderRight';
+import HeaderRight from '@/components/common/HeaderRight';
+
 
 export default function SocialLayout() {
   const colorScheme = useColorScheme();
@@ -23,7 +24,7 @@ export default function SocialLayout() {
         name="index"
         options={{
           title: '소셜',
-          headerRight: () => <HeaderRight />,
+          headerRight: () => <HeaderRight/>
         }}
       />
       <Stack.Screen

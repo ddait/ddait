@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { INotification } from './types';
@@ -17,6 +18,7 @@ export default function NotificationItem({
   onMarkAsRead,
   onDelete,
 }: INotificationItemProps) {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -24,8 +26,13 @@ export default function NotificationItem({
     if (notification.status === 'unread') {
       onMarkAsRead(notification.id);
     }
-    // TODO: 알림 타입별 네비게이션 처리
-  }, [notification, onMarkAsRead]);
+    
+    // 알림 상세 화면으로 이동
+    router.push({
+      pathname: '../notifications/[type]/[id]',
+      params: { type: notification.type, id: notification.id }
+    });
+  }, [notification, onMarkAsRead, router]);
 
   const renderRightActions = useCallback(() => (
     <Pressable
