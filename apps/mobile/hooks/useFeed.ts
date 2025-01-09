@@ -1,99 +1,187 @@
-import { useState, useCallback, useEffect } from 'react';
-import { IPost, FeedFilter, FeedSortType } from '@/components/social/Feed/types';
-
-// TODO: API 연동 시 실제 데이터로 대체
-const DUMMY_POSTS: IPost[] = [
-  {
-    id: '1',
-    user: {
-      id: 'user1',
-      username: '김운동',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-    },
-    content: '오늘도 열심히 운동했습니다! 💪',
-    images: ['https://picsum.photos/400/300'],
-    likes: 42,
-    comments: 5,
-    isLiked: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    user: {
-      id: 'user2',
-      username: '박헬스',
-      avatar: 'https://i.pravatar.cc/150?img=2',
-    },
-    content: '새로운 운동 루틴을 시작했어요. 같이 도전하실 분?',
-    likes: 28,
-    comments: 12,
-    isLiked: true,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-];
+import { useCallback, useEffect, useRef } from 'react';
+import { IPost, FeedFilter, FeedSortType, ICreatePostDTO, ICreateCommentDTO } from '@/components/social/Feed/types';
+import FeedService from '@/services/social/FeedService';
+import { Share } from 'react-native';
+import { useFeedStore } from '@/stores/feedStore';
 
 export function useFeed(initialFilter: FeedFilter = 'all', initialSort: FeedSortType = 'latest') {
-  const [posts, setPosts] = useState<IPost[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [filter, setFilter] = useState<FeedFilter>(initialFilter);
-  const [sort, setSort] = useState<FeedSortType>(initialSort);
+  const feedService = useRef(FeedService.getInstance());
+  const {
+    posts,
+    filter,
+    sortType,
+    currentPage,
+    hasMore,
+    isLoading,
+    error,
+    setPosts,
+    addPosts,
+    updatePost,
+    removePost,
+    setFilter,
+    setSortType,
+    setCurrentPage,
+    setHasMore,
+    setLoading,
+    setError,
+  } = useFeedStore();
 
   const fetchPosts = useCallback(async (refresh = false) => {
     try {
       setError(null);
       if (refresh) {
-        setIsRefreshing(true);
+        setLoading(true);
+        setCurrentPage(1);
       } else {
-        setIsLoading(true);
+        setLoading(true);
       }
 
-      // TODO: API 연동
-      // 임시로 더미 데이터 사용
-      setPosts(prev => refresh ? DUMMY_POSTS : [...prev, ...DUMMY_POSTS]);
-      setHasMore(false);
+      const response = await feedService.current.getFeedPosts(
+        refresh ? 1 : currentPage,
+        filter,
+        sortType
+      );
+
+      if (refresh) {
+        setPosts(response.posts);
+      } else {
+        addPosts(response.posts);
+      }
+      setHasMore(response.pagination.hasMore);
+      
+      if (!refresh) {
+        setCurrentPage(currentPage + 1);
+      }
     } catch (err) {
       setError(err as Error);
     } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      setLoading(false);
     }
-  }, []);
+  }, [currentPage, filter, sortType, setPosts, addPosts, setCurrentPage, setHasMore, setLoading, setError]);
 
   useEffect(() => {
     fetchPosts(true);
-  }, [fetchPosts, filter, sort]);
+  }, [fetchPosts, filter, sortType]);
 
   const refresh = useCallback(() => {
     return fetchPosts(true);
   }, [fetchPosts]);
 
   const loadMore = useCallback(() => {
-    if (!isLoading && !isRefreshing && hasMore) {
+    if (!isLoading && hasMore) {
       fetchPosts();
     }
-  }, [fetchPosts, isLoading, isRefreshing, hasMore]);
+  }, [fetchPosts, isLoading, hasMore]);
+
+  const createPost = useCallback(async (postData: ICreatePostDTO) => {
+    try {
+      const newPost = await feedService.current.createPost(postData);
+      setPosts([newPost, ...posts]);
+      return newPost;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [posts, setPosts, setError]);
+
+  const deletePost = useCallback(async (postId: string) => {
+    try {
+      await feedService.current.deletePost(postId);
+      removePost(postId);
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [removePost, setError]);
+
+  const sharePost = useCallback(async (post: IPost) => {
+    try {
+      const shareContent = {
+        title: `${post.user.username}님의 운동`,
+        message: `${post.content}\n\n${post.user.username}님의 운동 스토리를 확인해보세요!`,
+        url: post.images?.[0],
+      };
+
+      const result = await Share.share(shareContent);
+      
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log(`Shared via ${result.activityType}`);
+        } else {
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [setError]);
+
+  const likePost = useCallback(async (postId: string) => {
+    try {
+      await feedService.current.likePost(postId);
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+        updatePost(postId, { isLiked: true, likes: post.likes + 1 });
+      }
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [posts, updatePost, setError]);
+
+  const unlikePost = useCallback(async (postId: string) => {
+    try {
+      await feedService.current.unlikePost(postId);
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+        updatePost(postId, { isLiked: false, likes: post.likes - 1 });
+      }
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [posts, updatePost, setError]);
+
+  const addComment = useCallback(async (commentData: ICreateCommentDTO) => {
+    try {
+      const newComment = await feedService.current.addComment(commentData);
+      const post = posts.find(p => p.id === commentData.postId);
+      if (post) {
+        updatePost(commentData.postId, { comments: post.comments + 1 });
+      }
+      return newComment;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [posts, updatePost, setError]);
 
   const updateFilter = useCallback((newFilter: FeedFilter) => {
     setFilter(newFilter);
-  }, []);
+  }, [setFilter]);
 
   const updateSort = useCallback((newSort: FeedSortType) => {
-    setSort(newSort);
-  }, []);
+    setSortType(newSort);
+  }, [setSortType]);
 
   return {
     posts,
     isLoading,
-    isRefreshing,
     hasMore,
     error,
     filter,
-    sort,
+    sortType,
     refresh,
     loadMore,
+    createPost,
+    deletePost,
+    likePost,
+    unlikePost,
+    addComment,
+    sharePost,
     updateFilter,
     updateSort,
   };

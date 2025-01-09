@@ -46,4 +46,67 @@ export interface IFeedItemProps {
   onComment?: (postId: string) => void;
   onShare?: (postId: string) => void;
   onUserPress?: (userId: string) => void;
+}
+
+export interface IComment {
+  id: string;
+  user: IUser;
+  content: string;
+  createdAt: string;
+  updatedAt?: string;
+  postId: string;
+}
+
+export interface ICommentResponse {
+  comments: IComment[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    hasMore: boolean;
+  };
+}
+
+export interface ILike {
+  id: string;
+  user: IUser;
+  postId: string;
+  createdAt: string;
+}
+
+export interface IFeedState {
+  posts: IPost[];
+  filter: FeedFilter;
+  sortType: FeedSortType;
+  currentPage: number;
+  hasMore: boolean;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface IFeedActions {
+  setPosts: (posts: IPost[]) => void;
+  addPosts: (posts: IPost[]) => void;
+  setFilter: (filter: FeedFilter) => void;
+  setSortType: (sortType: FeedSortType) => void;
+  setCurrentPage: (page: number) => void;
+  setHasMore: (hasMore: boolean) => void;
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: Error | null) => void;
+  reset: () => void;
+}
+
+export interface ICreatePostDTO {
+  content: string;
+  images?: string[];
+}
+
+export interface IUpdatePostDTO {
+  content?: string;
+  images?: string[];
+}
+
+export interface ICreateCommentDTO {
+  content: string;
+  postId: string;
 } 
