@@ -78,7 +78,7 @@ export interface IAchievementsProps {
 
 export interface ISettingsProps {
   settings: IUserSettings;
-  onSettingChange: (key: string, value: any) => void;
-  onThemeChange: (theme: 'light' | 'dark' | 'system') => void;
-  onLanguageChange: (language: string) => void;
+  onSettingChange?: (key: string, value: any) => void;
+  onThemeChange?: (theme: 'light' | 'dark' | 'system') => void;
+  onLanguageChange?: (language: string) => void;
 } 

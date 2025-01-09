@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { HeaderRight } from '../../components/common/HeaderRight';
 
 export default function TabLayout() {
   return (
@@ -36,16 +37,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="social/index"
+        name="social"
         options={{
           title: '소셜',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="people" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="profile/index"
+        name="profile"
         options={{
           title: '프로필',
           tabBarIcon: ({ color }) => (

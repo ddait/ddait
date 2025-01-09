@@ -1,22 +1,14 @@
-export interface IChatRoom {
-  id: string;
-  name: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  participants: string[];
-  avatar?: string;
-}
+import { ChatRoom } from '@/types/chat';
 
 export interface IChatListProps {
-  chatRooms?: IChatRoom[];
+  chatRooms: ChatRoom[];
   isLoading?: boolean;
-  onChatRoomPress?: (chatRoom: IChatRoom) => void;
+  onChatRoomPress?: (chatRoom: ChatRoom) => void;
   onRefresh?: () => void;
   onLoadMore?: () => void;
 }
 
 export interface IChatListItemProps {
-  chatRoom: IChatRoom;
-  onPress?: (chatRoom: IChatRoom) => void;
+  chatRoom: ChatRoom;
+  onPress?: (chatRoom: ChatRoom) => void;
 } 
