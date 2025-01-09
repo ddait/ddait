@@ -1,12 +1,21 @@
-import { IFollowUser, IFollowResponse, IFollowStats, IFollowFilter, IFollowActionResponse } from '@/components/social/Follow/types';
+import { 
+  IEnhancedFollowUser, 
+  IFollowResponse, 
+  IFollowStats, 
+  IFollowFilter, 
+  IFollowActionResponse,
+  IFollowRelationship,
+} from '@/components/social/Follow/types';
 
 class FollowService {
   private static instance: FollowService;
-  private cache: Map<string, IFollowUser>;
+  private cache: Map<string, IEnhancedFollowUser>;
+  private relationshipCache: Map<string, IFollowRelationship>;
   private statsCache: Map<string, IFollowStats>;
 
   private constructor() {
     this.cache = new Map();
+    this.relationshipCache = new Map();
     this.statsCache = new Map();
   }
 
@@ -31,9 +40,36 @@ class FollowService {
             id: 'user1',
             username: '김운동',
             avatar: 'https://i.pravatar.cc/150?img=1',
+            bio: '운동을 사랑하는 사람',
+            exercisePreferences: ['헬스', '러닝'],
+            level: 3,
+            lastActive: new Date().toISOString(),
             followStatus: 'following',
             followersCount: 100,
             followingCount: 50,
+            mutualFriends: 5,
+            relationship: {
+              id: 'rel1',
+              followerId: userId,
+              followingId: 'user1',
+              createdAt: new Date().toISOString(),
+              status: 'following',
+              notificationSettings: {
+                posts: true,
+                achievements: true,
+                exercises: true,
+              },
+            },
+            recentActivities: [
+              {
+                type: 'exercise',
+                timestamp: new Date().toISOString(),
+                summary: '러닝 5km 완료',
+                metadata: {
+                  exerciseId: 'ex1',
+                },
+              },
+            ],
           },
         ],
         pagination: {
@@ -62,9 +98,36 @@ class FollowService {
             id: 'user2',
             username: '박헬스',
             avatar: 'https://i.pravatar.cc/150?img=2',
+            bio: '매일 운동하는 삶',
+            exercisePreferences: ['크로스핏', '요가'],
+            level: 5,
+            lastActive: new Date().toISOString(),
             followStatus: 'mutual',
             followersCount: 200,
             followingCount: 150,
+            mutualFriends: 10,
+            relationship: {
+              id: 'rel2',
+              followerId: userId,
+              followingId: 'user2',
+              createdAt: new Date().toISOString(),
+              status: 'mutual',
+              notificationSettings: {
+                posts: true,
+                achievements: true,
+                exercises: false,
+              },
+            },
+            recentActivities: [
+              {
+                type: 'achievement',
+                timestamp: new Date().toISOString(),
+                summary: '100일 연속 운동 달성',
+                metadata: {
+                  achievementId: 'ach1',
+                },
+              },
+            ],
           },
         ],
         pagination: {
@@ -85,15 +148,33 @@ class FollowService {
       // TODO: API 연동
       const user = this.cache.get(userId);
       if (user) {
+        const relationship: IFollowRelationship = {
+          id: `rel_${Date.now()}`,
+          followerId: 'currentUserId', // TODO: 실제 현재 사용자 ID로 대체
+          followingId: userId,
+          createdAt: new Date().toISOString(),
+          status: 'following',
+          notificationSettings: {
+            posts: true,
+            achievements: true,
+            exercises: true,
+          },
+        };
+
         const updatedUser = {
           ...user,
           followStatus: 'following' as const,
           followersCount: user.followersCount + 1,
+          relationship,
         };
+
         this.updateFollowCache(userId, updatedUser);
+        this.relationshipCache.set(userId, relationship);
+
         return {
           success: true,
           user: updatedUser,
+          relationship,
         };
       }
       throw new Error('User not found');
@@ -108,18 +189,59 @@ class FollowService {
       // TODO: API 연동
       const user = this.cache.get(userId);
       if (user) {
+        const relationship: IFollowRelationship = {
+          id: `rel_${Date.now()}`,
+          followerId: 'currentUserId', // TODO: 실제 현재 사용자 ID로 대체
+          followingId: userId,
+          createdAt: new Date().toISOString(),
+          status: 'none',
+          notificationSettings: {
+            posts: false,
+            achievements: false,
+            exercises: false,
+          },
+        };
+
         const updatedUser = {
           ...user,
           followStatus: 'none' as const,
           followersCount: Math.max(0, user.followersCount - 1),
+          relationship,
         };
+
         this.updateFollowCache(userId, updatedUser);
+        this.relationshipCache.delete(userId);
+
         return {
           success: true,
           user: updatedUser,
+          relationship,
         };
       }
       throw new Error('User not found');
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // 알림 설정 업데이트
+  async updateNotificationSettings(
+    userId: string,
+    settings: Partial<IFollowRelationship['notificationSettings']>
+  ): Promise<void> {
+    try {
+      // TODO: API 연동
+      const relationship = this.relationshipCache.get(userId);
+      if (relationship) {
+        const updatedRelationship = {
+          ...relationship,
+          notificationSettings: {
+            ...relationship.notificationSettings,
+            ...settings,
+          },
+        };
+        this.relationshipCache.set(userId, updatedRelationship);
+      }
     } catch (error) {
       throw this.handleError(error);
     }
@@ -139,6 +261,7 @@ class FollowService {
       const stats = {
         followersCount: 100,
         followingCount: 50,
+        mutualCount: 20,
       };
 
       // 통계 캐시 업데이트
@@ -150,7 +273,7 @@ class FollowService {
   }
 
   // 캐시 업데이트
-  private updateFollowCache(userId: string, data: IFollowUser): void {
+  private updateFollowCache(userId: string, data: IEnhancedFollowUser): void {
     this.cache.set(userId, data);
   }
 
@@ -158,9 +281,11 @@ class FollowService {
   public clearFollowCache(userId?: string): void {
     if (userId) {
       this.cache.delete(userId);
+      this.relationshipCache.delete(userId);
       this.statsCache.delete(userId);
     } else {
       this.cache.clear();
+      this.relationshipCache.clear();
       this.statsCache.clear();
     }
   }
