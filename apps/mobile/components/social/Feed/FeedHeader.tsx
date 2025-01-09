@@ -1,150 +1,69 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Text } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
+import { View, TouchableOpacity, Text } from 'react-native';
+import { useFeed } from '@/hooks/useFeed';
 import { FeedFilter, FeedSortType } from './types';
 
-interface FeedHeaderProps {
-  currentFilter: FeedFilter;
-  currentSort: FeedSortType;
-  onFilterChange: (filter: FeedFilter) => void;
-  onSortChange: (sort: FeedSortType) => void;
-}
+export default function FeedHeader() {
+  const { filter, sortType, updateFilter, updateSort } = useFeed();
 
-export default function FeedHeader({
-  currentFilter,
-  currentSort,
-  onFilterChange,
-  onSortChange,
-}: FeedHeaderProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const filters: { label: string; value: FeedFilter }[] = [
+    { label: '전체', value: 'all' },
+    { label: '팔로잉', value: 'following' },
+  ];
+
+  const sortTypes: { label: string; value: FeedSortType }[] = [
+    { label: '최신순', value: 'latest' },
+    { label: '인기순', value: 'popular' },
+  ];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.filterContainer}>
-        <Pressable
-          style={[
-            styles.filterButton,
-            currentFilter === 'all' && styles.activeFilter,
-            { borderColor: colors.text }
-          ]}
-          onPress={() => onFilterChange('all')}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              { color: colors.text },
-              currentFilter === 'all' && styles.activeText
-            ]}
+    <View className="flex-row justify-between items-center p-4 bg-background border-b border-border">
+      <View className="flex-row gap-2">
+        {filters.map(({ label, value }) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => updateFilter(value)}
+            className={`px-3 py-1 rounded-full ${
+              filter === value
+                ? 'bg-primary'
+                : 'bg-muted'
+            }`}
           >
-            전체
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[
-            styles.filterButton,
-            currentFilter === 'following' && styles.activeFilter,
-            { borderColor: colors.text }
-          ]}
-          onPress={() => onFilterChange('following')}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              { color: colors.text },
-              currentFilter === 'following' && styles.activeText
-            ]}
-          >
-            팔로잉
-          </Text>
-        </Pressable>
+            <Text
+              className={`text-sm font-medium ${
+                filter === value
+                  ? 'text-primary-foreground'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
-      <View style={styles.sortContainer}>
-        <Pressable
-          style={[
-            styles.sortButton,
-            currentSort === 'latest' && styles.activeSort,
-            { borderColor: colors.text }
-          ]}
-          onPress={() => onSortChange('latest')}
-        >
-          <Text
-            style={[
-              styles.sortText,
-              { color: colors.text },
-              currentSort === 'latest' && styles.activeText
-            ]}
+      <View className="flex-row gap-2">
+        {sortTypes.map(({ label, value }) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => updateSort(value)}
+            className={`px-3 py-1 rounded-full ${
+              sortType === value
+                ? 'bg-primary'
+                : 'bg-muted'
+            }`}
           >
-            최신순
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[
-            styles.sortButton,
-            currentSort === 'popular' && styles.activeSort,
-            { borderColor: colors.text }
-          ]}
-          onPress={() => onSortChange('popular')}
-        >
-          <Text
-            style={[
-              styles.sortText,
-              { color: colors.text },
-              currentSort === 'popular' && styles.activeText
-            ]}
-          >
-            인기순
-          </Text>
-        </Pressable>
+            <Text
+              className={`text-sm font-medium ${
+                sortType === value
+                  ? 'text-primary-foreground'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E1E1E1',
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    marginBottom: 8,
-    gap: 8,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  activeFilter: {
-    backgroundColor: '#000',
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  sortButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  activeSort: {
-    backgroundColor: '#000',
-  },
-  sortText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  activeText: {
-    color: '#FFF',
-  },
-}); 
+} 

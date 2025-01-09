@@ -110,14 +110,38 @@ class FeedService {
   }
 
   // Comments
+  public async getComments(
+    postId: string,
+    page: number = 1
+  ): Promise<ICommentResponse> {
+    try {
+      const cacheKey = `comments:${postId}:${page}`;
+      const cachedData = this.cache.get(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
+
+      // TODO: API 연동 후 실제 엔드포인트로 교체
+      const response = await fetch(`/api/posts/${postId}/comments?page=${page}`);
+      const data = await response.json();
+
+      this.cache.set(cacheKey, data);
+      return data;
+    } catch (error) {
+      return this.handleError('Failed to fetch comments', error);
+    }
+  }
+
   public async addComment(commentData: ICreateCommentDTO): Promise<IComment> {
     try {
       // TODO: API 연동 후 실제 엔드포인트로 교체
-      const response = await fetch('/api/comments', {
+      const response = await fetch(`/api/posts/${commentData.postId}/comments`, {
         method: 'POST',
         body: JSON.stringify(commentData),
       });
       const data = await response.json();
+      this.clearCommentCache(commentData.postId);
       this.updateFeedCache(commentData.postId, { comments: (prev: number) => prev + 1 });
       return data;
     } catch (error) {
@@ -131,6 +155,7 @@ class FeedService {
       await fetch(`/api/comments/${commentId}`, {
         method: 'DELETE',
       });
+      this.clearCommentCache(postId);
       this.updateFeedCache(postId, { comments: (prev: number) => prev - 1 });
     } catch (error) {
       return this.handleError('Failed to delete comment', error);
@@ -154,6 +179,14 @@ class FeedService {
 
   public clearFeedCache(): void {
     this.cache.clear();
+  }
+
+  private clearCommentCache(postId: string): void {
+    this.cache.forEach((_, key) => {
+      if (key.startsWith(`comments:${postId}:`)) {
+        this.cache.delete(key);
+      }
+    });
   }
 
   private handleError(message: string, error: any): never {

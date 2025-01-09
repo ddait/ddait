@@ -159,6 +159,29 @@ export function useFeed(initialFilter: FeedFilter = 'all', initialSort: FeedSort
     }
   }, [posts, updatePost, setError]);
 
+  const getComments = useCallback(async (postId: string, page: number = 1) => {
+    try {
+      const response = await feedService.current.getComments(postId, page);
+      return response;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [setError]);
+
+  const deleteComment = useCallback(async (commentId: string, postId: string) => {
+    try {
+      await feedService.current.deleteComment(commentId, postId);
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+        updatePost(postId, { comments: post.comments - 1 });
+      }
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [posts, updatePost, setError]);
+
   const updateFilter = useCallback((newFilter: FeedFilter) => {
     setFilter(newFilter);
   }, [setFilter]);
@@ -181,6 +204,8 @@ export function useFeed(initialFilter: FeedFilter = 'all', initialSort: FeedSort
     likePost,
     unlikePost,
     addComment,
+    getComments,
+    deleteComment,
     sharePost,
     updateFilter,
     updateSort,
