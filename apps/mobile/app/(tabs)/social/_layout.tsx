@@ -1,30 +1,45 @@
 import { Stack } from 'expo-router';
-import { useColorScheme } from '@hooks/useColorScheme';
-import { Colors } from '../../../constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 import HeaderRight from '@/components/common/HeaderRight';
-
 
 export default function SocialLayout() {
   const colorScheme = useColorScheme();
-  const theme = colorScheme ?? 'light';
+  const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors[theme].background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: Colors[theme].text,
+        headerTintColor: colors.text,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
         },
+        animation: 'slide_from_right',
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           title: '소셜',
-          headerRight: () => <HeaderRight/>
+          headerRight: () => <HeaderRight />,
+          headerShadowVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="profile/[id]"
+        options={{
+          title: '프로필',
+          headerBackTitle: '소셜',
+        }}
+      />
+      <Stack.Screen
+        name="post/[id]"
+        options={{
+          title: '게시물',
+          headerBackTitle: '소셜',
         }}
       />
       <Stack.Screen
@@ -37,7 +52,7 @@ export default function SocialLayout() {
       <Stack.Screen
         name="chat/[id]"
         options={{
-          title: '채팅',
+          title: '',
           headerBackTitle: '채팅',
         }}
       />
@@ -49,10 +64,10 @@ export default function SocialLayout() {
         }}
       />
       <Stack.Screen
-        name="[id]/index"
+        name="notifications/[type]/[id]"
         options={{
-          title: '프로필',
-          headerBackTitle: '소셜',
+          title: '',
+          headerBackTitle: '알림',
         }}
       />
     </Stack>
